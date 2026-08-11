@@ -106,6 +106,12 @@ fun localizeUiText(text: String): String {
     if (text == "Phone language") return when (language) {
         "gu" -> "ફોનની ભાષા"; "hi" -> "फोन की भाषा"; "bn" -> "ফোনের ভাষা"; "mr" -> "फोनची भाषा"; "pa" -> "ਫੋਨ ਦੀ ਭਾਸ਼ਾ"; "ta" -> "போன் மொழி"; "te" -> "ఫోన్ భాష"; "kn" -> "ಫೋನ್ ಭಾಷೆ"; "ml" -> "ഫോൺ ഭാഷ"; "es" -> "Idioma del teléfono"; "fr" -> "Langue du téléphone"; "de" -> "Telefonsprache"; "ar" -> "لغة الهاتف"; "pt" -> "Idioma do telefone"; "zh" -> "手机语言"; "ja" -> "端末の言語"; else -> text
     }
+    if (text == "International Languages") return when (language) {
+        "gu" -> "આંતરરાષ્ટ્રીય ભાષાઓ"; "hi" -> "अंतरराष्ट्रीय भाषाएँ"; "bn" -> "আন্তর্জাতিক ভাষা"; "mr" -> "आंतरराष्ट्रीय भाषा"; "pa" -> "ਅੰਤਰਰਾਸ਼ਟਰੀ ਭਾਸ਼ਾਵਾਂ"; "ta" -> "சர்வதேச மொழிகள்"; "te" -> "అಂతర్జాతీయ భాషలు"; "kn" -> "ಅಂತರ್ರಾಷ್ಟ್ರೀಯ ಭಾಷೆಗಳು"; "ml" -> "അന്താരാഷ്ട്ര ഭാഷകൾ"; "es" -> "Idiomas internacionales"; "fr" -> "Langues internationales"; "de" -> "Internationale Sprachen"; "ar" -> "اللغات العالمية"; "pt" -> "Idiomas internacionais"; "zh" -> "国际语言"; "ja" -> "国際言語"; else -> text
+    }
+    if (text == "Indian Languages") return when (language) {
+        "gu" -> "ભારતીય ભાષાઓ"; "hi" -> "भारतीय भाषाएँ"; "bn" -> "ভারতীয় ভাষা"; "mr" -> "भारतीय भाषा"; "pa" -> "ਭਾਰਤੀ ਭਾਸ਼ਾਵਾਂ"; "ta" -> "இந்திய மொழிகள்"; "te" -> "భారతీయ భాషలు"; "kn" -> "ಭಾರತೀಯ ಭಾಷೆಗಳು"; "ml" -> "ഇന്ത്യൻ ഭാഷകൾ"; "es" -> "Idiomas de la India"; "fr" -> "Langues de l’Inde"; "de" -> "Indische Sprachen"; "ar" -> "اللغات الهندية"; "pt" -> "Idiomas da Índia"; "zh" -> "印度语言"; "ja" -> "インドの言語"; else -> text
+    }
     if (text.startsWith("Preview:")) {
         val label = when (language) { "gu" -> "પૂર્વદર્શન"; "hi", "mr" -> "पूर्वावलोकन"; "bn" -> "পূর্বরূপ"; "pa" -> "ਝਲਕ"; "ta" -> "முன்னோட்டம்"; "te" -> "ముందస్తు చూపు"; "kn" -> "ಮುನ್ನೋಟ"; "ml" -> "പ്രിവ്യൂ"; "es" -> "Vista previa"; "fr" -> "Aperçu"; "de" -> "Vorschau"; "ar" -> "معاينة"; "pt" -> "Pré-visualização"; "zh" -> "预览"; "ja" -> "プレビュー"; else -> "Preview" }
         return "$label:${text.substringAfter(':')}"
