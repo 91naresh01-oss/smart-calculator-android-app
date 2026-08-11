@@ -125,7 +125,7 @@ fun localizeUiText(text: String): String {
         val converter = when (language) { "gu" -> "કન્વર્ટર"; "hi", "mr" -> "कन्वर्टर"; "bn" -> "কনভার্টার"; "pa" -> "ਕਨਵਰਟਰ"; "ta" -> "மாற்றி"; "te" -> "కన్వర్టర్"; "kn" -> "ಪರಿವರ್ತಕ"; "ml" -> "കൺവേർട്ടർ"; "es" -> "Conversor"; "fr" -> "Convertisseur"; "de" -> "Umrechner"; "ar" -> "محوّل"; "pt" -> "Conversor"; "zh" -> "换算器"; "ja" -> "変換"; else -> "Converter" }
         return "$translatedBase $converter"
     }
-    return text
+    return localizeUnitNames(text, language)
 }
 
 @Composable
