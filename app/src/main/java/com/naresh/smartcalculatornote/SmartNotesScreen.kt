@@ -57,7 +57,7 @@ fun CalHubScreen(state: AppState, viewModel: CalculatorViewModel, openNoteId: St
                     onClick = { viewModel.calSection(section) }, modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(containerColor = if (selected) Navy else SoftField, contentColor = if (selected) Color.White else DeepNavy)
                 ) {
-                    Text(if (section == CalSection.CALCULATOR) "Calculator" else "Smart Note", fontWeight = FontWeight.Bold)
+                    Text(if (section == CalSection.CALCULATOR) "Note + Cal" else "Smart Note", fontWeight = FontWeight.Bold)
                 }
             }
         }

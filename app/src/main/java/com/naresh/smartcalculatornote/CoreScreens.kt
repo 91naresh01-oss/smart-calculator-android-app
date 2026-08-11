@@ -560,7 +560,7 @@ fun FourValueScreen(state: AppState, viewModel: CalculatorViewModel) {
                                 ) {
                                     Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
                                         Icon(modeIcon, contentDescription = item.label, tint = if (mode == item) Color.White else modeIconColor, modifier = Modifier.size(14.dp))
-                                        Text(item.label, fontSize = 9.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+                                        Text(item.label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
                                     }
                                 }
                             }
