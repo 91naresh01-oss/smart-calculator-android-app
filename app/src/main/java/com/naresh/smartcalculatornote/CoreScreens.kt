@@ -46,7 +46,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -66,6 +65,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.UUID
+import kotlin.math.roundToInt
 
 @Composable
 fun CalScreen(state: AppState, viewModel: CalculatorViewModel) {
@@ -109,7 +109,7 @@ fun CalScreen(state: AppState, viewModel: CalculatorViewModel) {
                     CompactTextField(
                         value = row.amount,
                         onValueChange = { text ->
-                            val formatted = CalculationEngine.formatTyping(text)
+                            val formatted = CalculationEngine.rawTyping(text)
                             viewModel.rows(state.rows.map { if (it.id == row.id) it.copy(amount = formatted) else it })
                         },
                         placeholder = { Text("0") },
@@ -303,7 +303,7 @@ private fun CashRow(denomination: Int, quantity: String, onChange: (String) -> U
         Text("×", color = DeepNavy)
         CompactTextField(
             value = quantity,
-            onValueChange = { onChange(CalculationEngine.formatTyping(it)) },
+            onValueChange = { onChange(CalculationEngine.rawTyping(it)) },
             placeholder = { Text("0", textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth()) },
             modifier = Modifier.width(58.dp),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -339,7 +339,7 @@ private fun Adjustment(title: String, background: Color, border: Color, color: C
             Text(title, color = color, fontWeight = FontWeight.Bold, fontSize = 11.sp, maxLines = 1, modifier = Modifier.weight(1f))
             CompactTextField(
                 value = value,
-                onValueChange = { onChange(CalculationEngine.formatTyping(it)) },
+                onValueChange = { onChange(CalculationEngine.rawTyping(it)) },
                 placeholder = { Text("0") },
                 modifier = Modifier.width(62.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -446,7 +446,7 @@ fun OriginalScreen(history: List<HistoryEntry>, onHistory: (List<HistoryEntry>) 
                 Text(
                     CalculationEngine.formatIndianExpression(rawDisplay),
                     color = DeepNavy,
-                    fontSize = 26.sp,
+                    fontSize = 30.sp,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.End,
                     modifier = Modifier.fillMaxWidth().background(SoftField, RoundedCornerShape(12.dp)).border(1.dp, Line, RoundedCornerShape(12.dp)).padding(10.dp)
@@ -454,7 +454,7 @@ fun OriginalScreen(history: List<HistoryEntry>, onHistory: (List<HistoryEntry>) 
                 if (error.isNotBlank()) Text(error, color = AppRed, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(4),
-                    modifier = Modifier.fillMaxWidth().height(258.dp).padding(top = 8.dp),
+                    modifier = Modifier.fillMaxWidth().height(308.dp).padding(top = 8.dp),
                     userScrollEnabled = false,
                     horizontalArrangement = Arrangement.spacedBy(5.dp),
                     verticalArrangement = Arrangement.spacedBy(5.dp)
@@ -466,7 +466,7 @@ fun OriginalScreen(history: List<HistoryEntry>, onHistory: (List<HistoryEntry>) 
                         val percent = key == "%"
                         Button(
                             onClick = { press(key) },
-                            modifier = Modifier.height(44.dp),
+                            modifier = Modifier.height(52.dp),
                             shape = RoundedCornerShape(9.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = when { equal -> Navy; reset -> Color(0xFFFFF1F2); percent -> Color(0xFFFFF8E9); action -> Color(0xFFF0F5FF); else -> PageWhite },
@@ -474,7 +474,7 @@ fun OriginalScreen(history: List<HistoryEntry>, onHistory: (List<HistoryEntry>) 
                             ),
                             border = if (equal) null else BorderStroke(1.dp, if (percent) Color(0xFFF3D28F) else Line)
                         ) {
-                            Text(when (key) { "/" -> "÷"; "*" -> "×"; else -> key }, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                            Text(when (key) { "/" -> "÷"; "*" -> "×"; else -> key }, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                         }
                     }
                 }
@@ -487,11 +487,12 @@ fun OriginalScreen(history: List<HistoryEntry>, onHistory: (List<HistoryEntry>) 
 fun FourValueScreen(state: AppState, viewModel: CalculatorViewModel) {
     val mode = state.fourValueMode
     var answer by remember(mode) { mutableStateOf<CalculationResult?>(null) }
+    var emiAdvanced by rememberSaveable { mutableStateOf(false) }
     fun field(index: Int) = state.toolInputs[mode.valueKey(index)] ?: mode.defaultValues[index]
     fun unit(index: Int) = state.toolInputs[mode.unitKey(index)] ?: mode.defaultUnits[index]
     fun updateField(index: Int, value: String) {
         answer = null
-        viewModel.input(mode.valueKey(index), CalculationEngine.formatTyping(value))
+        viewModel.input(mode.valueKey(index), CalculationEngine.rawTyping(value))
     }
     fun updateUnit(index: Int, value: String) {
         answer = null
@@ -570,6 +571,25 @@ fun FourValueScreen(state: AppState, viewModel: CalculatorViewModel) {
             }
         }
         item { Spacer(Modifier.height(6.dp)) }
+        if (mode == FourValueMode.EMI) {
+            item {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    InterestTypeButton("Quick EMI", !emiAdvanced, Modifier.weight(1f)) { emiAdvanced = false; answer = null }
+                    InterestTypeButton("Advanced", emiAdvanced, Modifier.weight(1f)) { emiAdvanced = true; answer = null }
+                }
+            }
+            item { Spacer(Modifier.height(6.dp)) }
+            if (!emiAdvanced) {
+                item {
+                    QuickEmiPanel(
+                        principal = field(0), rate = field(1), tenure = field(2), tenureUnit = unit(2),
+                        onPrincipal = { updateField(0, it) }, onRate = { updateField(1, it) }, onTenure = { updateField(2, it) },
+                        onTenureUnit = { updateUnit(2, it) }
+                    )
+                }
+                return@ScreenList
+            }
+        }
         if (mode == FourValueMode.INTEREST) {
             item {
                 ReferenceCard {
@@ -644,6 +664,58 @@ fun FourValueScreen(state: AppState, viewModel: CalculatorViewModel) {
                 shape = RoundedCornerShape(11.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Navy)
             ) { Text("CALCULATE", fontWeight = FontWeight.Bold, fontSize = 14.sp) }
+        }
+    }
+}
+
+@Composable
+private fun QuickEmiPanel(
+    principal: String,
+    rate: String,
+    tenure: String,
+    tenureUnit: String,
+    onPrincipal: (String) -> Unit,
+    onRate: (String) -> Unit,
+    onTenure: (String) -> Unit,
+    onTenureUnit: (String) -> Unit
+) {
+    val months = ((tenure.number() * if (tenureUnit == "years") 12.0 else 1.0).roundToInt()).coerceAtLeast(0)
+    val summary = CalculationEngine.emiSummary(principal.number(), rate.number(), months)
+    Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+        ReferenceCard {
+            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Input(principal, onPrincipal, "Loan amount")
+                Input(rate, onRate, "Annual interest rate %")
+                Input(tenure, onTenure, "Tenure")
+                Picker(if (tenureUnit == "years") "Years" else "Months", listOf("months", "years"), tenureUnit) { onTenureUnit(it) }
+            }
+        }
+        if (principal.isNotBlank() || rate.isNotBlank() || tenure.isNotBlank()) {
+            if (summary == null) {
+                ReferenceCard { Text("Enter a valid loan amount, rate and tenure.", color = AppRed, modifier = Modifier.padding(12.dp)) }
+            } else {
+                Card(colors = CardDefaults.cardColors(containerColor = Navy), shape = RoundedCornerShape(15.dp)) {
+                    Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text("MONTHLY EMI", color = Color.White.copy(alpha = .78f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        Text("₹ ${CalculationEngine.format(summary.monthlyEmi)}", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Black)
+                        Text("Principal ₹ ${CalculationEngine.format(summary.principal)} · Interest ₹ ${CalculationEngine.format(summary.totalInterest)}", color = Color.White)
+                        Text("Total payment ₹ ${CalculationEngine.format(summary.totalPayment)}", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("Principal ${CalculationEngine.format(summary.principalPercent)}% · Interest ${CalculationEngine.format(summary.interestPercent)}%", color = Color.White.copy(alpha = .86f), fontSize = 11.sp)
+                    }
+                }
+                ReferenceCard {
+                    Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+                        Text("YEAR-WISE BREAKUP", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Black)
+                        summary.yearlyRows.forEach { row ->
+                            Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                                Text("Year ${row.year}", color = DeepNavy, fontWeight = FontWeight.Black)
+                                Text("Principal ₹ ${CalculationEngine.format(row.principalPaid)} · Interest ₹ ${CalculationEngine.format(row.interestPaid)}", color = Muted, fontSize = 11.sp)
+                                Text("Balance ₹ ${CalculationEngine.format(row.closingBalance)}", color = Navy, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -735,7 +807,7 @@ private fun UnitPill(value: String, modifier: Modifier) {
 fun Input(value: String, onChange: (String) -> Unit, label: String, modifier: Modifier = Modifier, keyboardType: KeyboardType = KeyboardType.Decimal) {
     CompactTextField(
         value = value,
-        onValueChange = { onChange(CalculationEngine.formatTyping(it)) },
+        onValueChange = { onChange(CalculationEngine.rawTyping(it)) },
         label = { Text(label) },
         modifier = modifier.fillMaxWidth(),
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType)

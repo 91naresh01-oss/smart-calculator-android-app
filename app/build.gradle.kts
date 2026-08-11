@@ -28,7 +28,7 @@ android {
     }
     kotlinOptions { jvmTarget = "17" }
     buildFeatures { compose = true }
-    sourceSets.getByName("test").resources.srcDir("../../spec")
+    androidResources { generateLocaleConfig = true }
 }
 
 dependencies {
@@ -36,6 +36,7 @@ dependencies {
     implementation(composeBom)
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
     implementation("androidx.activity:activity-compose:1.10.1")
+    implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")

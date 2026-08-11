@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "display": { "locale": "en-IN", "maximumFractionDigits": 3, "historyLimit": 100 },
+  "calculatorIds": ["cal", "four-value", "cash", "original", "length", "weight", "area", "discount", "split", "quantity-rate", "mileage", "temperature", "time", "age-date", "percentage", "gst", "emi", "currency"],
+  "rules": { "divideByZero": "error", "negativeFinanceInput": "error", "fourValueMissingInputs": 1, "currencyRateSource": "manual", "ageDateOrder": "swap", "calculationPrecision": "full", "displayRounding": "half-away-compatible-to-3-decimals" }
+}

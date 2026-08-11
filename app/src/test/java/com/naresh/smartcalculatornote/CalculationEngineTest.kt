@@ -14,6 +14,24 @@ class CalculationEngineTest {
     private fun assertNumber(expected: Double, actual: Double?, delta: Double = 0.000001) = assertEquals(expected, actual!!, delta)
 
     @Test
+    fun rawTypingKeepsDigitOrderWhileIndianDisplayAddsGrouping() {
+        var raw = ""
+        "123456".forEach { digit -> raw = CalculationEngine.rawTyping(raw + digit) }
+        assertEquals("123456", raw)
+        assertEquals("1,23,456", CalculationEngine.formatTyping(raw))
+        assertEquals("1234567.89", CalculationEngine.rawTyping("12,34,567.89"))
+    }
+
+    @Test
+    fun emiSummaryMatchesPaymentAndYearlyTotals() {
+        val summary = requireNotNull(CalculationEngine.emiSummary(100000.0, 12.0, 12))
+        assertEquals(8884.878867834166, summary.monthlyEmi, 0.000001)
+        assertEquals(summary.principal, summary.yearlyRows.sumOf { it.principalPaid }, 0.01)
+        assertEquals(summary.totalInterest, summary.yearlyRows.sumOf { it.interestPaid }, 0.01)
+        assertEquals(summary.totalPayment, summary.principal + summary.totalInterest, 0.01)
+    }
+
+    @Test
     fun sharedFixtureFileAndDefaultRowsMatch() {
         assertEquals(1, JSONObject(requireNotNull(javaClass.classLoader?.getResourceAsStream("calculation-contract.json")).bufferedReader().readText()).getInt("schemaVersion"))
         val fixture = case("calc-basic")

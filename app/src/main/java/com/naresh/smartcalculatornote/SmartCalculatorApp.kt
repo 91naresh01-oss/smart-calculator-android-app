@@ -29,8 +29,9 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,29 +40,34 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
-val Navy = Color(0xFF1C735E)
-val DeepNavy = Color(0xFF111827)
-val Cyan = Color(0xFFB98218)
-val AppRed = Color(0xFFF24655)
-val PageWhite = Color(0xFFFFFFFF)
-val SoftField = Color(0xFFFFFFFF)
-val Line = Color(0xFFE2E4E8)
-val Muted = Color(0xFF6B7280)
+val Navy: Color @Composable get() = MaterialTheme.colorScheme.primary
+val DeepNavy: Color @Composable get() = MaterialTheme.colorScheme.onSurface
+val Cyan: Color @Composable get() = MaterialTheme.colorScheme.secondary
+val AppRed: Color @Composable get() = MaterialTheme.colorScheme.error
+val PageWhite: Color @Composable get() = MaterialTheme.colorScheme.surface
+val SoftField: Color @Composable get() = MaterialTheme.colorScheme.surfaceContainerLow
+val Line: Color @Composable get() = MaterialTheme.colorScheme.outlineVariant
+val Muted: Color @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
 
 private val LightScheme = androidx.compose.material3.lightColorScheme(
-    primary = Navy,
-    secondary = Cyan,
-    background = PageWhite,
-    surface = PageWhite,
-    onSurface = DeepNavy,
-    onSurfaceVariant = Muted
+    primary = Color(0xFF1C735E),
+    secondary = Color(0xFFB98218),
+    background = Color(0xFFF7FAF9),
+    surface = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFF2F6F5),
+    onSurface = Color(0xFF111827),
+    onSurfaceVariant = Color(0xFF6B7280),
+    outlineVariant = Color(0xFFDDE4E1),
+    error = Color(0xFFB3261E)
 )
 private val DarkScheme = androidx.compose.material3.darkColorScheme(
     primary = Color(0xFF9EB8FF),
@@ -69,20 +75,28 @@ private val DarkScheme = androidx.compose.material3.darkColorScheme(
     background = Color(0xFF101827),
     surface = Color(0xFF172338),
     onSurface = Color(0xFFF5F7FF),
-    onSurfaceVariant = Color(0xFFBDCAE1)
+    onSurfaceVariant = Color(0xFFBDCAE1),
+    surfaceContainerLow = Color(0xFF1D2A40),
+    outlineVariant = Color(0xFF33445E),
+    error = Color(0xFFFFB4AB)
 )
 
 @Composable
-fun SmartCalculatorApp(viewModel: CalculatorViewModel) {
+fun SmartCalculatorApp(viewModel: CalculatorViewModel, openNoteId: String? = null) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    LaunchedEffect(openNoteId, state.notes) {
+        if (openNoteId != null && state.notes.any { it.id == openNoteId }) viewModel.openNotes()
+    }
     val dark = when (state.theme) {
         ThemeMode.DARK -> true
         ThemeMode.LIGHT -> false
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
     }
     val context = LocalContext.current
+    val systemDensity = LocalDensity.current
     MaterialTheme(colorScheme = if (dark) DarkScheme else LightScheme) {
-        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+        CompositionLocalProvider(LocalDensity provides Density(systemDensity.density, systemDensity.fontScale * state.fontScale)) {
+          Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
             ProvideTextStyle(LocalTextStyle.current.copy(fontFamily = AppFontFamily)) {
                 ResponsiveReferenceLayout {
                     Column(Modifier.fillMaxSize()) {
@@ -93,7 +107,7 @@ fun SmartCalculatorApp(viewModel: CalculatorViewModel) {
                             AppNavigation(state.activeTab, viewModel::select)
                             Box(Modifier.fillMaxWidth().weight(1f)) {
                                 when (state.activeTab) {
-                                    MainTab.CAL -> CalScreen(state, viewModel)
+                                    MainTab.CAL -> CalHubScreen(state, viewModel, openNoteId)
                                     MainTab.FOUR_VALUE -> FourValueScreen(state, viewModel)
                                     MainTab.CASH -> CashScreen(state, viewModel)
                                     MainTab.ORIGINAL -> OriginalScreen(state.originalHistory, viewModel::originalHistory)
@@ -113,6 +127,7 @@ fun SmartCalculatorApp(viewModel: CalculatorViewModel) {
                     }
                 }
             }
+          }
         }
     }
 }

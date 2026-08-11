@@ -44,6 +44,39 @@ enum class MainTab(val label: String) {
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
+enum class CalSection { CALCULATOR, NOTES }
+
+enum class ReminderRepeat { NONE, DAILY, WEEKLY }
+
+data class SmartNote(
+    val id: String,
+    val title: String,
+    val details: String = "",
+    val createdAt: Long = System.currentTimeMillis(),
+    val updatedAt: Long = System.currentTimeMillis(),
+    val completed: Boolean = false,
+    val reminderAt: Long? = null,
+    val repeat: ReminderRepeat = ReminderRepeat.NONE
+)
+
+data class EmiYearRow(
+    val year: Int,
+    val openingBalance: Double,
+    val principalPaid: Double,
+    val interestPaid: Double,
+    val closingBalance: Double
+)
+
+data class EmiSummary(
+    val monthlyEmi: Double,
+    val principal: Double,
+    val totalInterest: Double,
+    val totalPayment: Double,
+    val principalPercent: Double,
+    val interestPercent: Double,
+    val yearlyRows: List<EmiYearRow>
+)
+
 enum class FourValueMode(
     val key: String,
     val label: String,
@@ -122,7 +155,10 @@ data class AppState(
     val selectedMoreTool: String? = null,
     val history: List<HistoryEntry> = emptyList(),
     val originalHistory: List<HistoryEntry> = emptyList(),
-    val theme: ThemeMode = ThemeMode.SYSTEM
+    val theme: ThemeMode = ThemeMode.SYSTEM,
+    val fontScale: Float = 1f,
+    val calSection: CalSection = CalSection.CALCULATOR,
+    val notes: List<SmartNote> = emptyList()
 )
 
 data class SmartUnit(val id: String, val label: String, val group: String, val base: Double = 1.0)
@@ -214,8 +250,14 @@ object CalculationEngine {
     fun raw(value: Double): String = format(value).replace(",", "")
 
     /** Keeps a decimal being typed intact while grouping its whole portion in Indian style. */
-    fun formatTyping(text: String): String {
+    fun rawTyping(text: String): String {
         val value = text.replace(",", "")
+        if (value.isBlank() || value == "-" || value == "." || value == "-.") return value
+        return if (value.matches(Regex("-?\\d*(\\.\\d*)?"))) value else text.replace(",", "")
+    }
+
+    fun formatTyping(text: String): String {
+        val value = rawTyping(text)
         if (value.isBlank() || value == "-" || value == "." || value == "-.") return value
         if (!value.matches(Regex("-?\\d*(\\.\\d*)?"))) return text
         val negative = value.startsWith("-")
@@ -483,6 +525,48 @@ object CalculationEngine {
         if (!value.isFinite()) return fail("Unable to calculate a valid loan value.")
         val total = value * months
         return ok(value, listOf("Total interest ${format((total - principal).coerceAtLeast(0.0))}", "Total payment ${format(total)}"))
+    }
+
+    fun emiSummary(principal: Double, annualRate: Double, months: Int): EmiSummary? {
+        if (!principal.isFinite() || !annualRate.isFinite() || principal <= 0.0 || annualRate < 0.0 || months <= 0) return null
+        val emi = monthlyPayment(principal, annualRate, months.toDouble())
+        if (!emi.isFinite() || emi <= 0.0) return null
+        val monthlyRate = annualRate / 1200.0
+        var balance = principal
+        val rows = mutableListOf<EmiYearRow>()
+        var yearOpening = balance
+        var yearPrincipal = 0.0
+        var yearInterest = 0.0
+        for (month in 1..months) {
+            val interestPart = balance * monthlyRate
+            val principalPart = (emi - interestPart).coerceAtLeast(0.0).coerceAtMost(balance)
+            balance = (balance - principalPart).coerceAtLeast(0.0)
+            yearPrincipal += principalPart
+            yearInterest += interestPart
+            if (month % 12 == 0 || month == months) {
+                rows += EmiYearRow(
+                    year = (month - 1) / 12 + 1,
+                    openingBalance = yearOpening,
+                    principalPaid = yearPrincipal,
+                    interestPaid = yearInterest,
+                    closingBalance = balance
+                )
+                yearOpening = balance
+                yearPrincipal = 0.0
+                yearInterest = 0.0
+            }
+        }
+        val totalInterest = rows.sumOf { it.interestPaid }.coerceAtLeast(0.0)
+        val totalPayment = principal + totalInterest
+        return EmiSummary(
+            monthlyEmi = emi,
+            principal = principal,
+            totalInterest = totalInterest,
+            totalPayment = totalPayment,
+            principalPercent = principal / totalPayment * 100.0,
+            interestPercent = totalInterest / totalPayment * 100.0,
+            yearlyRows = rows
+        )
     }
 
     fun smartProfit(raw: List<String>): CalculationResult {

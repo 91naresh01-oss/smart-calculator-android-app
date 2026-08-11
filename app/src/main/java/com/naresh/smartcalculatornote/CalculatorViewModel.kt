@@ -29,7 +29,9 @@ class CalculatorViewModel(private val repository: CalculatorRepository) : ViewMo
             selectedMoreTool = if (tab == MainTab.MORE && it.activeTab != MainTab.MORE) null else it.selectedMoreTool
         )
     }
-    fun theme() = mutate { it.copy(theme = when (it.theme) { ThemeMode.SYSTEM -> ThemeMode.LIGHT; ThemeMode.LIGHT -> ThemeMode.DARK; ThemeMode.DARK -> ThemeMode.SYSTEM }) }
+    fun theme(mode: ThemeMode) = mutate { it.copy(theme = mode) }
+    fun fontScale(scale: Float) = mutate { it.copy(fontScale = scale.coerceIn(0.85f, 1.3f)) }
+    fun calSection(section: CalSection) = mutate { it.copy(calSection = section) }
     fun rows(rows: List<CalcRow>) = mutate { it.copy(rows = rows.ifEmpty { listOf(CalcRow(UUID.randomUUID().toString())) }) }
     fun cash(cash: Map<Int, String>) = mutate { it.copy(cash = cash) }
     fun input(key: String, value: String) = mutate { it.copy(toolInputs = it.toolInputs + (key to value)) }
@@ -49,4 +51,16 @@ class CalculatorViewModel(private val repository: CalculatorRepository) : ViewMo
     fun saveHistory(label: String, value: String) = mutate { it.copy(history = (listOf(HistoryEntry(UUID.randomUUID().toString(), label, value, System.currentTimeMillis())) + it.history).take(100)) }
     fun originalHistory(entries: List<HistoryEntry>) = mutate { it.copy(originalHistory = entries.take(100)) }
     fun clearHistory() = mutate { it.copy(history = emptyList(), originalHistory = emptyList()) }
+    fun upsertNote(note: SmartNote) = mutate { current ->
+        val existing = current.notes.indexOfFirst { it.id == note.id }
+        val next = if (existing >= 0) current.notes.toMutableList().apply { set(existing, note) } else (listOf(note) + current.notes)
+        current.copy(notes = next.sortedByDescending { it.updatedAt }.take(500))
+    }
+    fun deleteNote(id: String) = mutate { it.copy(notes = it.notes.filterNot { note -> note.id == id }) }
+    fun completeNote(id: String) = mutate { current ->
+        current.copy(notes = current.notes.map { note ->
+            if (note.id == id) note.copy(completed = true, reminderAt = null, updatedAt = System.currentTimeMillis()) else note
+        })
+    }
+    fun openNotes() = mutate { it.copy(activeTab = MainTab.CAL, calSection = CalSection.NOTES) }
 }

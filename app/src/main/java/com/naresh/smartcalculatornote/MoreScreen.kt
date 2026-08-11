@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.LocalGasStation
 import androidx.compose.material.icons.filled.Percent
 import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.Thermostat
@@ -39,7 +40,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -92,6 +92,13 @@ private val moreTools = listOf(
 fun MoreScreen(state: AppState, viewModel: CalculatorViewModel, onShare: () -> Unit) {
     val selected = state.selectedMoreTool
     val metrics = LocalReferenceLayoutMetrics.current
+    if (selected == "settings") {
+        ScreenList {
+            item { MoreToolHeader("Settings", onBack = { viewModel.selectMoreTool(null) }) }
+            item { SettingsScreen(state, viewModel) }
+        }
+        return
+    }
     if (selected != null) {
         val tool = moreTools.firstOrNull { it.id == selected }
         if (tool != null) {
@@ -108,7 +115,15 @@ fun MoreScreen(state: AppState, viewModel: CalculatorViewModel, onShare: () -> U
         }
     }
     ScreenList {
-        item { PageHeader("More Tools") }
+        item {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("More Tools", color = DeepNavy, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                OutlinedButton(onClick = { viewModel.selectMoreTool("settings") }) {
+                    Icon(Icons.Default.Settings, contentDescription = "Settings", modifier = Modifier.size(18.dp))
+                    Text("Settings", modifier = Modifier.padding(start = 5.dp), fontWeight = FontWeight.Bold)
+                }
+            }
+        }
         moreTools.chunked(metrics.moreColumns).forEach { pair ->
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -183,7 +198,7 @@ private fun MoreTool(tool: String, state: AppState, viewModel: CalculatorViewMod
     val values = state.toolInputs
     fun value(key: String, fallback: String = "") = values[key] ?: fallback
     fun change(key: String, text: String) = viewModel.input(key, text)
-    fun numericChange(key: String, text: String) = change(key, CalculationEngine.formatTyping(text))
+    fun numericChange(key: String, text: String) = change(key, CalculationEngine.rawTyping(text))
     when (tool) {
         "history" -> HistoryTool((state.history + state.originalHistory).sortedByDescending { it.createdAt }, viewModel::clearHistory, onShare)
         "length" -> ConverterTool("Length Converter", "length", CalculationEngine.lengthUnits, "Meter (m)", "Foot (ft)", "1", values, ::numericChange, ::change)
@@ -362,7 +377,7 @@ private fun ConverterPanel(
 private fun ConverterValueField(value: String, onValueChange: (String) -> Unit, modifier: Modifier) {
     CompactTextField(
         value = value,
-        onValueChange = { onValueChange(CalculationEngine.formatTyping(it)) },
+        onValueChange = { onValueChange(CalculationEngine.rawTyping(it)) },
         modifier = modifier,
         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Decimal),
         height = 48.dp,

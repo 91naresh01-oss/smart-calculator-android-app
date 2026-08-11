@@ -13,6 +13,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -20,6 +23,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.material3.LocalTextStyle
@@ -52,7 +61,9 @@ fun CompactTextField(
     isError: Boolean = false,
     height: Dp = CompactVisibleHeight,
     shape: Shape = CompactFieldShape,
-    plainWhenIdle: Boolean = false
+    plainWhenIdle: Boolean = false,
+    autoFit: Boolean = true,
+    indianNumber: Boolean = keyboardOptions.keyboardType == KeyboardType.Number || keyboardOptions.keyboardType == KeyboardType.Decimal
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
@@ -67,16 +78,31 @@ fun CompactTextField(
         TextAlign.Center -> Alignment.Center
         else -> Alignment.CenterStart
     }
+    var fieldValue by remember { mutableStateOf(TextFieldValue(value, selection = TextRange(value.length))) }
+    LaunchedEffect(value) {
+        if (value != fieldValue.text) {
+            val cursor = fieldValue.selection.end.coerceAtMost(value.length)
+            fieldValue = TextFieldValue(value, selection = TextRange(cursor))
+        }
+    }
+    val displayLength = if (indianNumber) CalculationEngine.formatTyping(value).length else value.length
+    val fittedSize = when {
+        !autoFit -> textStyle.fontSize
+        displayLength > 20 -> 9.sp
+        displayLength > 16 -> 10.sp
+        displayLength > 12 -> 11.sp
+        else -> textStyle.fontSize
+    }
     Box(modifier, contentAlignment = Alignment.Center) {
         BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
+            value = fieldValue,
+            onValueChange = { next -> fieldValue = next; onValueChange(next.text) },
             modifier = Modifier.fillMaxWidth().height(height),
             enabled = enabled,
             singleLine = true,
-            textStyle = textStyle.copy(fontFamily = AppFontFamily),
+            textStyle = textStyle.copy(fontFamily = AppFontFamily, fontSize = fittedSize),
             keyboardOptions = keyboardOptions,
-            visualTransformation = visualTransformation,
+            visualTransformation = if (indianNumber) IndianNumberVisualTransformation else visualTransformation,
             interactionSource = interactionSource,
             decorationBox = { innerTextField ->
                 Box(
@@ -106,5 +132,20 @@ fun CompactTextField(
                 }
             }
         )
+    }
+}
+
+private object IndianNumberVisualTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val raw = text.text
+        val formatted = CalculationEngine.formatTyping(raw)
+        val mapping = object : OffsetMapping {
+            override fun originalToTransformed(offset: Int): Int = CalculationEngine.formatTyping(raw.take(offset.coerceIn(0, raw.length))).length.coerceAtMost(formatted.length)
+            override fun transformedToOriginal(offset: Int): Int {
+                val target = offset.coerceIn(0, formatted.length)
+                return (0..raw.length).lastOrNull { originalToTransformed(it) <= target } ?: 0
+            }
+        }
+        return TransformedText(AnnotatedString(formatted), mapping)
     }
 }
