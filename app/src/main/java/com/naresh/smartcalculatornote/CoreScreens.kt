@@ -63,6 +63,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
@@ -474,18 +475,21 @@ fun OriginalScreen(history: List<HistoryEntry>, onHistory: (List<HistoryEntry>) 
                         val equal = key == "="
                         val percent = key == "%"
                         if (reset) {
-                            val resetShape = RoundedCornerShape(13.dp)
+                            val resetShape = RoundedCornerShape(9.dp)
+                            val cGradient = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                                colors = listOf(Color(0xFFEF5350), Color(0xFFC62828))
+                            )
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(52.dp)
+                                    .shadow(2.dp, resetShape, spotColor = Color(0x30C62828))
                                     .clip(resetShape)
-                                    .background(Color(0xFFF7E9E8))
-                                    .border(1.dp, Color(0xFFEABCC1), resetShape)
+                                    .background(cGradient)
                                     .pointerInput(key) { detectTapGestures(onTap = { press(key) }) },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text("C", color = AppRed, fontWeight = FontWeight.ExtraBold, fontSize = 21.sp)
+                                Text("C", color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 21.sp)
                             }
                         } else {
                             Button(

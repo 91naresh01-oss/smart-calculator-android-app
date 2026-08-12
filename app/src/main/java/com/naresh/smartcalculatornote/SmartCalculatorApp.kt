@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -260,48 +259,42 @@ fun Modifier.modernBoxSurface(
 
 @Composable
 fun ResetButton(onClick: () -> Unit, modifier: Modifier = Modifier.height(40.dp)) {
-    val shape = RoundedCornerShape(14.dp)
-    Card(
-        onClick = onClick,
-        modifier = modifier.shadow(
-            elevation = 4.dp,
-            shape = shape,
-            spotColor = Color(0x2B000000),
-            ambientColor = Color(0x16000000)
-        ),
-        shape = shape,
-        colors = CardDefaults.cardColors(containerColor = PageWhite),
-        border = BorderStroke(1.dp, AppRed.copy(alpha = .24f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    val shape = RoundedCornerShape(12.dp)
+    val gradientBrush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+        colors = listOf(Color(0xFFEF5350), Color(0xFFC62828))
+    )
+    Box(
+        modifier = modifier
+            .shadow(4.dp, shape, spotColor = Color(0x40C62828), ambientColor = Color(0x18000000))
+            .clip(shape)
+            .background(gradientBrush)
+            .pointerInput(Unit) { detectTapGestures(onTap = { onClick() }) },
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier.fillMaxHeight().align(Alignment.CenterHorizontally),
-            contentAlignment = Alignment.Center
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Surface(
-                    modifier = Modifier.size(27.dp),
-                    shape = RoundedCornerShape(9.dp),
-                    color = AppRed
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White, modifier = Modifier.size(15.dp))
-                    }
-                }
-                Text("RESET", color = DeepNavy, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = .7.sp)
-            }
+            Icon(
+                Icons.Default.Refresh,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(15.dp)
+            )
+            Text("RESET", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = .8.sp)
         }
     }
 }
 
 @Composable
 fun PageHeader(title: String, reset: (() -> Unit)? = null) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 0.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(title, color = DeepNavy, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+    Row(
+        Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(title, color = DeepNavy, fontSize = 20.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
         reset?.let { ResetButton(it) }
     }
 }
