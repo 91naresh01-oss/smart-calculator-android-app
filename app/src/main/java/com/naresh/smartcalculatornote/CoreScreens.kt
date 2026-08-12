@@ -31,9 +31,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.CurrencyRupee
 import androidx.compose.material.icons.filled.Percent
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.School
@@ -61,6 +63,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -243,8 +246,8 @@ fun CashScreen(state: AppState, viewModel: CalculatorViewModel) {
         }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                CashStat("Total Notes", "💵", count.toString(), Modifier.weight(1f))
-                CashStat("Notes Value", "₹", result.display, Modifier.weight(1f))
+                CashStat("Total Notes", Icons.Default.Payments, count.toString(), Modifier.weight(1f))
+                CashStat("Notes Value", Icons.Default.CurrencyRupee, result.display, Modifier.weight(1f))
             }
         }
         item {
@@ -320,12 +323,12 @@ private fun CashRow(denomination: Int, quantity: String, onChange: (String) -> U
 }
 
 @Composable
-private fun CashStat(title: String, symbol: String, value: String, modifier: Modifier) {
+private fun CashStat(title: String, icon: ImageVector, value: String, modifier: Modifier) {
     ReferenceCard(modifier.heightIn(min = 55.dp)) {
         Column(Modifier.padding(horizontal = 9.dp, vertical = 7.dp)) {
             Text(title, fontSize = 10.sp, color = Muted, fontWeight = FontWeight.Medium)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(symbol, color = Navy, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                Icon(icon, contentDescription = null, tint = Navy, modifier = Modifier.size(18.dp))
                 Text(value, color = DeepNavy, fontWeight = FontWeight.Bold, fontSize = 19.sp)
             }
         }
@@ -453,7 +456,7 @@ fun OriginalScreen(history: List<HistoryEntry>, onHistory: (List<HistoryEntry>) 
                     fontSize = 30.sp,
                     fontWeight = FontWeight.SemiBold,
                     textAlign = TextAlign.End,
-                    modifier = Modifier.fillMaxWidth().background(SoftField, RoundedCornerShape(12.dp)).border(1.dp, Line, RoundedCornerShape(12.dp)).padding(10.dp)
+                    modifier = Modifier.fillMaxWidth().modernBoxSurface(RoundedCornerShape(12.dp), 3.dp).padding(10.dp)
                 )
                 if (error.isNotBlank()) Text(error, color = AppRed, fontSize = 12.sp, modifier = Modifier.padding(top = 4.dp))
                 LazyVerticalGrid(
@@ -833,7 +836,7 @@ private fun FinanceRateField(value: String, onValue: (String) -> Unit, modifier:
     Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text("Annual interest rate", color = Muted, fontSize = 8.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
         Row(
-            Modifier.fillMaxWidth().height(43.dp).background(SoftField, RoundedCornerShape(9.dp)).border(1.dp, Line, RoundedCornerShape(9.dp)).padding(horizontal = 7.dp),
+            Modifier.fillMaxWidth().height(43.dp).modernBoxSurface(RoundedCornerShape(9.dp), 2.5.dp).padding(horizontal = 7.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text("%", color = Muted, fontSize = 15.sp)
@@ -861,7 +864,7 @@ private fun FinanceTenureField(
     Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text("Tenure", color = Muted, fontSize = 8.sp, fontWeight = FontWeight.SemiBold)
         Row(
-            Modifier.fillMaxWidth().height(43.dp).background(SoftField, RoundedCornerShape(9.dp)).border(1.dp, Line, RoundedCornerShape(9.dp)).padding(horizontal = 5.dp),
+            Modifier.fillMaxWidth().height(43.dp).modernBoxSurface(RoundedCornerShape(9.dp), 2.5.dp).padding(horizontal = 5.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             CompactTextField(
@@ -1026,10 +1029,11 @@ private fun CompactPicker(selected: String, options: List<String>, label: (Strin
     Box(modifier) {
         OutlinedButton(
             onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth().height(42.dp),
+            modifier = Modifier.fillMaxWidth().height(42.dp).modernBoxSurface(RoundedCornerShape(10.dp), 2.dp),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp),
             shape = RoundedCornerShape(10.dp),
-            border = BorderStroke(1.dp, Line)
+            border = BorderStroke(0.dp, Color.Transparent),
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent, contentColor = DeepNavy)
         ) { Text(label(selected), fontSize = 12.sp, fontWeight = FontWeight.SemiBold) }
         DropdownMenu(
             expanded = expanded,
@@ -1046,7 +1050,7 @@ private fun CompactPicker(selected: String, options: List<String>, label: (Strin
                     text = { Text(label(option), color = DeepNavy, fontWeight = FontWeight.SemiBold, fontSize = 14.sp) },
                     modifier = Modifier.heightIn(min = 50.dp),
                     onClick = { onSelect(option); expanded = false },
-                    leadingIcon = { if (option == selected) Text("✓", color = Navy, fontWeight = FontWeight.Black) }
+                    leadingIcon = { if (option == selected) Icon(Icons.Default.Check, contentDescription = null, tint = Navy) }
                 )
             }
         }
@@ -1055,10 +1059,8 @@ private fun CompactPicker(selected: String, options: List<String>, label: (Strin
 
 @Composable
 private fun UnitPill(value: String, modifier: Modifier) {
-    Card(modifier, shape = RoundedCornerShape(10.dp), colors = CardDefaults.cardColors(containerColor = SoftField), border = BorderStroke(1.dp, Line)) {
-        Box(Modifier.fillMaxWidth().height(42.dp), contentAlignment = Alignment.Center) {
-            Text(value, color = DeepNavy, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 9.dp))
-        }
+    Box(modifier.height(42.dp).modernBoxSurface(RoundedCornerShape(10.dp), 2.dp), contentAlignment = Alignment.Center) {
+        Text(value, color = DeepNavy, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 9.dp))
     }
 }
 
@@ -1078,7 +1080,13 @@ fun Input(value: String, onChange: (String) -> Unit, label: String, modifier: Mo
 fun Picker(label: String, options: List<String>, selected: String, display: (String) -> String = { it }, onSelect: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Box(Modifier.fillMaxWidth().heightIn(min = 48.dp), contentAlignment = Alignment.Center) {
-        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth().height(42.dp)) { Text(label, maxLines = 1) }
+        OutlinedButton(
+            onClick = { expanded = true },
+            modifier = Modifier.fillMaxWidth().height(42.dp).modernBoxSurface(RoundedCornerShape(10.dp), 2.dp),
+            shape = RoundedCornerShape(10.dp),
+            border = BorderStroke(0.dp, Color.Transparent),
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent, contentColor = DeepNavy)
+        ) { Text(label, maxLines = 1) }
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
@@ -1094,7 +1102,7 @@ fun Picker(label: String, options: List<String>, selected: String, display: (Str
                     text = { Text(display(option), color = DeepNavy, fontWeight = FontWeight.SemiBold, fontSize = 14.sp) },
                     modifier = Modifier.heightIn(min = 50.dp),
                     onClick = { onSelect(option); expanded = false },
-                    leadingIcon = { if (option == selected) Text("✓", color = Navy, fontWeight = FontWeight.Black) }
+                    leadingIcon = { if (option == selected) Icon(Icons.Default.Check, contentDescription = null, tint = Navy) }
                 )
             }
         }

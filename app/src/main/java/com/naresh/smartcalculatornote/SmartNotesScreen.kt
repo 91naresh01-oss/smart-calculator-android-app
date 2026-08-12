@@ -8,15 +8,19 @@ import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.NoteAdd
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
@@ -27,6 +31,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,6 +42,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -54,8 +60,11 @@ fun CalHubScreen(state: AppState, viewModel: CalculatorViewModel, openNoteId: St
             CalSection.entries.forEach { section ->
                 val selected = state.calSection == section
                 Button(
-                    onClick = { viewModel.calSection(section) }, modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = if (selected) Navy else SoftField, contentColor = if (selected) Color.White else DeepNavy)
+                    onClick = { viewModel.calSection(section) },
+                    modifier = Modifier.weight(1f).shadow(2.dp, RoundedCornerShape(11.dp), spotColor = Color(0x18000000)),
+                    shape = RoundedCornerShape(11.dp),
+                    border = BorderStroke(1.dp, if (selected) Navy else Line),
+                    colors = ButtonDefaults.buttonColors(containerColor = if (selected) Navy else PageWhite, contentColor = if (selected) Color.White else DeepNavy)
                 ) {
                     Text(if (section == CalSection.CALCULATOR) "Note + Cal" else "Smart Note", fontWeight = FontWeight.Bold)
                 }
@@ -105,17 +114,19 @@ fun SmartNotesScreen(state: AppState, viewModel: CalculatorViewModel, openNoteId
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(state.notes, key = { it.id }) { note ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth().clickable { editingId = note.id },
-                        colors = CardDefaults.cardColors(containerColor = PageWhite)
-                    ) {
+                    ReferenceCard(Modifier.clickable { editingId = note.id }) {
                         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(note.title.ifBlank { "Untitled note" }, fontWeight = FontWeight.Black, color = if (note.completed) Muted else DeepNavy, modifier = Modifier.weight(1f))
                                 Text(if (note.completed) "Done" else "Edit", color = if (note.completed) Muted else Navy, fontWeight = FontWeight.Bold)
                             }
                             if (note.details.isNotBlank()) Text(note.details, maxLines = 2, color = Muted)
-                            note.reminderAt?.let { Text("🔔 ${DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(it))} · ${repeatLabel(note.repeat)}", fontSize = 11.sp, color = Navy) }
+                            note.reminderAt?.let {
+                                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                                    Icon(Icons.Default.Notifications, contentDescription = null, tint = Navy, modifier = Modifier.size(14.dp))
+                                    Text("${DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(it))} · ${repeatLabel(note.repeat)}", fontSize = 11.sp, color = Navy)
+                                }
+                            }
                         }
                     }
                 }
@@ -157,8 +168,29 @@ private fun NoteEditor(draftId: String, note: SmartNote?, onCancel: () -> Unit, 
                 OutlinedButton(onClick = onCancel) { Text("Cancel") }
             }
         }
-        item { OutlinedTextField(value = title, onValueChange = { title = it.take(120) }, label = { Text("Title") }, modifier = Modifier.fillMaxWidth(), singleLine = true) }
-        item { OutlinedTextField(value = details, onValueChange = { details = it.take(4000) }, label = { Text("Details") }, modifier = Modifier.fillMaxWidth(), minLines = 5) }
+        item {
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it.take(120) },
+                label = { Text("Title") },
+                leadingIcon = { Icon(Icons.AutoMirrored.Filled.NoteAdd, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth().shadow(2.5.dp, androidx.compose.foundation.shape.RoundedCornerShape(12.dp), spotColor = Color(0x22000000)),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(focusedContainerColor = PageWhite, unfocusedContainerColor = PageWhite),
+                singleLine = true
+            )
+        }
+        item {
+            OutlinedTextField(
+                value = details,
+                onValueChange = { details = it.take(4000) },
+                label = { Text("Details") },
+                modifier = Modifier.fillMaxWidth().shadow(2.5.dp, androidx.compose.foundation.shape.RoundedCornerShape(12.dp), spotColor = Color(0x22000000)),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(focusedContainerColor = PageWhite, unfocusedContainerColor = PageWhite),
+                minLines = 5
+            )
+        }
         item {
             ReferenceCard {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -177,8 +209,11 @@ private fun NoteEditor(draftId: String, note: SmartNote?, onCancel: () -> Unit, 
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             ReminderRepeat.entries.forEach { option ->
                                 Button(
-                                    onClick = { repeat = option }, modifier = Modifier.weight(1f),
-                                    colors = ButtonDefaults.buttonColors(containerColor = if (repeat == option) Navy else SoftField, contentColor = if (repeat == option) Color.White else DeepNavy)
+                                    onClick = { repeat = option },
+                                    modifier = Modifier.weight(1f).shadow(2.dp, RoundedCornerShape(10.dp), spotColor = Color(0x18000000)),
+                                    shape = RoundedCornerShape(10.dp),
+                                    border = BorderStroke(1.dp, if (repeat == option) Navy else Line),
+                                    colors = ButtonDefaults.buttonColors(containerColor = if (repeat == option) Navy else PageWhite, contentColor = if (repeat == option) Color.White else DeepNavy)
                                 ) { Text(repeatLabel(option), fontSize = 11.sp) }
                             }
                         }

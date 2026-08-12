@@ -21,19 +21,29 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.shadow
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CurrencyExchange
 import androidx.compose.material.icons.filled.CurrencyRupee
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.LocalGasStation
+import androidx.compose.material.icons.filled.LocalOffer
+import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Percent
 import androidx.compose.material.icons.filled.Scale
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.SquareFoot
 import androidx.compose.material.icons.filled.Straighten
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.Thermostat
-import androidx.compose.material.icons.filled.Weekend
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -65,27 +75,27 @@ private data class ToolInfo(
     val id: String,
     val label: String,
     val hint: String,
-    val emoji: String
+    val icon: ImageVector
 )
 
 private val moreTools = listOf(
-    ToolInfo("length", "Length", "All length units", "📏"),
-    ToolInfo("weight", "Weight", "All weight units", "⚖️"),
-    ToolInfo("area", "Area", "Land & surface", "📐"),
-    ToolInfo("discount", "Discount", "Price saving", "🏷️"),
-    ToolInfo("split", "Split Bill", "Per person", "👥"),
-    ToolInfo("rate", "Qty × Rate", "Quick total", "📦"),
-    ToolInfo("mileage", "Mileage", "km/L & cost", "⛽"),
-    ToolInfo("temperature", "Temperature", "°C °F K", "🌡️"),
-    ToolInfo("time", "Time", "Convert time", "⏱️"),
-    ToolInfo("daily", "Daily Price", "Unit price", "💰"),
-    ToolInfo("age", "Age / Date", "Age & date gap", "🎂"),
-    ToolInfo("percentage", "Percentage", "Percent tools", "%"),
-    ToolInfo("gst", "GST", "Add / remove GST", "🧾"),
-    ToolInfo("emi", "EMI / Loan", "Monthly EMI", "🏦"),
-    ToolInfo("currency", "Currency", "Manual exchange", "💱"),
-    ToolInfo("history", "History", "Saved results", "🕒"),
-    ToolInfo("share", "Share", "Share summary", "📤")
+    ToolInfo("length", "Length", "All length units", Icons.Default.Straighten),
+    ToolInfo("weight", "Weight", "All weight units", Icons.Default.Scale),
+    ToolInfo("area", "Area", "Land & surface", Icons.Default.SquareFoot),
+    ToolInfo("discount", "Discount", "Price saving", Icons.Default.LocalOffer),
+    ToolInfo("split", "Split Bill", "Per person", Icons.Default.Groups),
+    ToolInfo("rate", "Qty × Rate", "Quick total", Icons.Default.Inventory2),
+    ToolInfo("mileage", "Mileage", "km/L & cost", Icons.Default.LocalGasStation),
+    ToolInfo("temperature", "Temperature", "°C °F K", Icons.Default.Thermostat),
+    ToolInfo("time", "Time", "Convert time", Icons.Default.Schedule),
+    ToolInfo("daily", "Daily Price", "Unit price", Icons.Default.Payments),
+    ToolInfo("age", "Age / Date", "Age & date gap", Icons.Default.DateRange),
+    ToolInfo("percentage", "Percentage", "Percent tools", Icons.Default.Percent),
+    ToolInfo("gst", "GST", "Add / remove GST", Icons.AutoMirrored.Filled.ReceiptLong),
+    ToolInfo("emi", "EMI / Loan", "Monthly EMI", Icons.Default.Calculate),
+    ToolInfo("currency", "Currency", "Manual exchange", Icons.Default.CurrencyExchange),
+    ToolInfo("history", "History", "Saved results", Icons.Default.History),
+    ToolInfo("share", "Share", "Share summary", Icons.Default.Share)
 )
 
 @Composable
@@ -118,7 +128,13 @@ fun MoreScreen(state: AppState, viewModel: CalculatorViewModel, onShare: () -> U
         item {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("More Tools", color = DeepNavy, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                OutlinedButton(onClick = { viewModel.selectMoreTool("settings") }) {
+                OutlinedButton(
+                    onClick = { viewModel.selectMoreTool("settings") },
+                    modifier = Modifier.shadow(2.dp, RoundedCornerShape(10.dp), spotColor = Color(0x20000000)),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = PageWhite, contentColor = DeepNavy),
+                    border = BorderStroke(1.dp, Line)
+                ) {
                     Icon(Icons.Default.Settings, contentDescription = "Settings", modifier = Modifier.size(18.dp))
                     Text("Settings", modifier = Modifier.padding(start = 5.dp), fontWeight = FontWeight.Bold)
                 }
@@ -148,10 +164,10 @@ private fun MoreToolTile(tool: ToolInfo, modifier: Modifier, onClick: () -> Unit
     Card(
         onClick = onClick,
         modifier = modifier.height(78.dp).shadow(
-            elevation = 3.5.dp,
+            elevation = 5.dp,
             shape = RoundedCornerShape(13.dp),
-            spotColor = Color(0x18000000),
-            ambientColor = Color(0x0C000000)
+            spotColor = Color(0x26000000),
+            ambientColor = Color(0x12000000)
         ),
         shape = RoundedCornerShape(13.dp),
         colors = CardDefaults.cardColors(containerColor = PageWhite),
@@ -163,13 +179,17 @@ private fun MoreToolTile(tool: ToolInfo, modifier: Modifier, onClick: () -> Unit
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                tool.emoji,
-                fontSize = if (tool.emoji == "%") 23.sp else 25.sp,
-                fontWeight = if (tool.emoji == "%") FontWeight.Bold else FontWeight.Normal,
-                color = if (tool.emoji == "%") Navy else Color.Unspecified,
-                textAlign = TextAlign.Center
-            )
+            androidx.compose.material3.Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = Navy.copy(alpha = .11f)
+            ) {
+                Icon(
+                    imageVector = tool.icon,
+                    contentDescription = tool.label,
+                    tint = Navy,
+                    modifier = Modifier.padding(6.dp).size(19.dp)
+                )
+            }
             Spacer(Modifier.height(4.dp))
             Text(tool.label, color = DeepNavy, fontWeight = FontWeight.Bold, fontSize = 13.sp, maxLines = 1)
         }
@@ -188,8 +208,12 @@ private fun MoreToolHeader(title: String, onBack: () -> Unit) {
             onClick = onBack,
             modifier = Modifier.height(34.dp),
             shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, Line)
-        ) { Text("← All tools", color = Navy, fontWeight = FontWeight.Bold, fontSize = 12.sp) }
+            border = BorderStroke(1.dp, Line),
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = PageWhite, contentColor = Navy)
+        ) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(15.dp))
+            Text("All tools", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+        }
     }
 }
 
@@ -336,10 +360,11 @@ private fun ConverterPanel(
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Navy)
-                ) { Text("↕", fontSize = 22.sp, fontWeight = FontWeight.Black) }
+                ) { Icon(Icons.Default.SwapVert, contentDescription = "Swap", modifier = Modifier.size(21.dp)) }
                 Card(
+                    modifier = Modifier.fillMaxWidth().shadow(3.dp, RoundedCornerShape(13.dp), spotColor = Color(0x22000000)),
                     shape = RoundedCornerShape(13.dp),
-                    colors = CardDefaults.cardColors(containerColor = SoftField),
+                    colors = CardDefaults.cardColors(containerColor = PageWhite),
                     border = BorderStroke(1.dp, Line),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
@@ -391,13 +416,14 @@ private fun ConverterUnitPicker(selected: String, options: List<String>, modifie
     androidx.compose.foundation.layout.Box(modifier) {
         OutlinedButton(
             onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth().height(48.dp),
+            modifier = Modifier.fillMaxWidth().height(48.dp).modernBoxSurface(RoundedCornerShape(10.dp), 2.dp),
             shape = RoundedCornerShape(10.dp),
-            border = BorderStroke(1.dp, Line),
+            border = BorderStroke(0.dp, Color.Transparent),
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent, contentColor = DeepNavy),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp)
         ) {
             Text(converterUnitShort(selected), modifier = Modifier.weight(1f), color = DeepNavy, fontWeight = FontWeight.Bold, maxLines = 1)
-            Text("⌄", color = DeepNavy, fontSize = 18.sp, fontWeight = FontWeight.Black)
+            Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = DeepNavy, modifier = Modifier.size(20.dp))
         }
         DropdownMenu(
             expanded = expanded,
@@ -414,7 +440,7 @@ private fun ConverterUnitPicker(selected: String, options: List<String>, modifie
                     text = { Text(option, color = DeepNavy, fontWeight = FontWeight.SemiBold, fontSize = 14.sp) },
                     modifier = Modifier.heightIn(min = 50.dp),
                     onClick = { onSelect(option); expanded = false },
-                    leadingIcon = { if (option == selected) Text("✓", color = Navy, fontWeight = FontWeight.Black) }
+                    leadingIcon = { if (option == selected) Icon(Icons.Default.Check, contentDescription = null, tint = Navy) }
                 )
             }
         }
@@ -479,7 +505,7 @@ private fun DailyPriceTool(values: Map<String, String>, onNumericChange: (String
                 suggestions.chunked(2).forEach { row ->
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         row.forEach { suggestion ->
-                            Card(Modifier.weight(1f), colors = CardDefaults.cardColors(containerColor = SoftField), shape = RoundedCornerShape(9.dp)) {
+                            ReferenceCard(Modifier.weight(1f)) {
                                 Column(Modifier.padding(8.dp)) {
                                     Text("${CalculationEngine.format(suggestion.quantity)} ${dailyPriceUnitLabel(suggestion.unit)}", fontSize = 12.sp, color = Muted)
                                     Text(CalculationEngine.format(suggestion.price), fontWeight = FontWeight.Black, color = DeepNavy)
@@ -610,7 +636,10 @@ private fun CurrencyTool(values: Map<String, String>, onNumericChange: (String, 
                 onNumericChange("currencyRate", CalculationEngine.raw(if (rate.number() == 0.0) 0.0 else 1.0 / rate.number()))
             },
             modifier = Modifier.fillMaxWidth().height(40.dp)
-        ) { Text("⇅ Swap") }
+        ) {
+            Icon(Icons.Default.SwapVert, contentDescription = null, modifier = Modifier.size(18.dp))
+            Text("Swap")
+        }
         Picker("To: $to", currencies, to) { onChange("currencyTo", it) }
         Input(rate, { onNumericChange("currencyRate", it) }, "Rate: 1 $from = ? $to")
     }

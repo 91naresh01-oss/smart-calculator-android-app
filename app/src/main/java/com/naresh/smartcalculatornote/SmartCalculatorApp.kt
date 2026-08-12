@@ -1,8 +1,10 @@
 package com.naresh.smartcalculatornote
 
+import android.app.Activity
 import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -32,22 +34,28 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.core.view.WindowCompat
 
 val Navy: Color @Composable get() = MaterialTheme.colorScheme.primary
 val DeepNavy: Color @Composable get() = MaterialTheme.colorScheme.onSurface
@@ -63,10 +71,10 @@ private val LightScheme = androidx.compose.material3.lightColorScheme(
     secondary = Color(0xFFB98218),
     background = Color(0xFFF7FAF9),
     surface = Color(0xFFFFFFFF),
-    surfaceContainerLow = Color(0xFFF2F6F5),
+    surfaceContainerLow = Color(0xFFFFFFFF),
     onSurface = Color(0xFF111827),
     onSurfaceVariant = Color(0xFF6B7280),
-    outlineVariant = Color(0xFFDDE4E1),
+    outlineVariant = Color(0xFFD7DEDB),
     error = Color(0xFFB3261E)
 )
 private val DarkScheme = androidx.compose.material3.darkColorScheme(
@@ -93,7 +101,15 @@ fun SmartCalculatorApp(viewModel: CalculatorViewModel, openNoteId: String? = nul
         ThemeMode.SYSTEM -> isSystemInDarkTheme()
     }
     val context = LocalContext.current
+    val view = LocalView.current
     val systemDensity = LocalDensity.current
+    SideEffect {
+        val window = (view.context as? Activity)?.window ?: return@SideEffect
+        WindowCompat.getInsetsController(window, view).apply {
+            isAppearanceLightStatusBars = !dark
+            isAppearanceLightNavigationBars = !dark
+        }
+    }
     MaterialTheme(colorScheme = if (dark) DarkScheme else LightScheme) {
         CompositionLocalProvider(LocalDensity provides Density(systemDensity.density, systemDensity.fontScale * state.fontScale)) {
           Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -209,19 +225,37 @@ private fun AppNavigation(selected: MainTab, select: (MainTab) -> Unit) {
 
 @Composable
 fun ReferenceCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    val shape = RoundedCornerShape(14.dp)
     Card(
         modifier = modifier.fillMaxWidth().shadow(
-            elevation = 3.5.dp,
-            shape = RoundedCornerShape(13.dp),
-            spotColor = Color(0x18000000),
-            ambientColor = Color(0x0C000000)
+            elevation = 5.dp,
+            shape = shape,
+            spotColor = Color(0x26000000),
+            ambientColor = Color(0x12000000)
         ),
-        shape = RoundedCornerShape(13.dp),
+        shape = shape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, Line),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) { content() }
 }
+
+/** Shared white-box treatment used by calculator fields and compact controls. */
+@Composable
+fun Modifier.modernBoxSurface(
+    shape: Shape = RoundedCornerShape(10.dp),
+    elevation: Dp = 2.5.dp,
+    borderColor: Color = Line
+): Modifier = this
+    .shadow(
+        elevation = elevation,
+        shape = shape,
+        spotColor = Color(0x24000000),
+        ambientColor = Color(0x10000000)
+    )
+    .clip(shape)
+    .background(PageWhite)
+    .border(1.dp, borderColor, shape)
 
 @Composable
 fun ResetButton(onClick: () -> Unit) {

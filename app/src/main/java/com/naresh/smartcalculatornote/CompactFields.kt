@@ -107,7 +107,7 @@ fun CompactTextField(
             decorationBox = { innerTextField ->
                 Box(
                     Modifier.fillMaxWidth().height(height)
-                        .then(if (showFrame) Modifier.shadow(2.5.dp, shape = shape, spotColor = androidx.compose.ui.graphics.Color(0x18000000), ambientColor = androidx.compose.ui.graphics.Color(0x0C000000)).clip(shape).background(SoftField).border(1.dp, border, shape) else Modifier)
+                        .then(if (showFrame) Modifier.modernBoxSurface(shape = shape, borderColor = border) else Modifier)
                         .alpha(if (enabled) 1f else 0.55f)
                 ) {
                     if (label != null && value.isNotBlank()) {

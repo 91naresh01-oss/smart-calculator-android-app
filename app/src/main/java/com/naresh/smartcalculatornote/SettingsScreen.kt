@@ -29,7 +29,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.FormatSize
 import androidx.compose.material.icons.rounded.Language
+import androidx.compose.material.icons.rounded.NotificationsActive
+import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -45,6 +48,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -94,8 +100,14 @@ fun SettingsScreen(state: AppState, viewModel: CalculatorViewModel) {
     var languageOpen by remember { mutableStateOf(false) }
     val selectedLanguage = SupportedLanguages.firstOrNull { it.tag == activeTag } ?: SupportedLanguages.first()
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        SettingCard("App language", "Works offline") {
-            OutlinedButton(onClick = { languageOpen = true }, modifier = Modifier.fillMaxWidth()) {
+        SettingCard("App language", "Works offline", Icons.Rounded.Language) {
+            OutlinedButton(
+                onClick = { languageOpen = true },
+                modifier = Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(10.dp), spotColor = Color(0x20000000)),
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = PageWhite, contentColor = DeepNavy),
+                border = BorderStroke(1.dp, Line)
+            ) {
                 Text(selectedLanguage.label, fontWeight = FontWeight.Bold)
             }
             if (languageOpen) {
@@ -109,25 +121,31 @@ fun SettingsScreen(state: AppState, viewModel: CalculatorViewModel) {
                 )
             }
         }
-        SettingCard("Font size", "Applies to the whole app") {
+        SettingCard("Font size", "Applies to the whole app", Icons.Rounded.FormatSize) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 listOf(.85f to "85%", 1f to "100%", 1.15f to "115%", 1.3f to "130%").forEach { (scale, label) ->
                     val active = kotlin.math.abs(state.fontScale - scale) < .01f
                     Button(
-                        onClick = { viewModel.fontScale(scale) }, modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = if (active) Navy else SoftField, contentColor = if (active) androidx.compose.ui.graphics.Color.White else DeepNavy)
+                        onClick = { viewModel.fontScale(scale) },
+                        modifier = Modifier.weight(1f).shadow(2.dp, RoundedCornerShape(10.dp), spotColor = Color(0x18000000)),
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, if (active) Navy else Line),
+                        colors = ButtonDefaults.buttonColors(containerColor = if (active) Navy else PageWhite, contentColor = if (active) Color.White else DeepNavy)
                     ) { Text(label, fontSize = 11.sp) }
                 }
             }
             Text("Preview: ₹ 1,23,456", fontSize = 18.sp, color = DeepNavy)
         }
-        SettingCard("Appearance", "Choose light, dark or phone setting") {
+        SettingCard("Appearance", "Choose light, dark or phone setting", Icons.Rounded.Palette) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 listOf(ThemeMode.SYSTEM to "System", ThemeMode.LIGHT to "Light", ThemeMode.DARK to "Dark").forEach { (mode, label) ->
                     val active = state.theme == mode
                     Button(
-                        onClick = { viewModel.theme(mode) }, modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = if (active) Navy else SoftField, contentColor = if (active) androidx.compose.ui.graphics.Color.White else DeepNavy)
+                        onClick = { viewModel.theme(mode) },
+                        modifier = Modifier.weight(1f).shadow(2.dp, RoundedCornerShape(10.dp), spotColor = Color(0x18000000)),
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, if (active) Navy else Line),
+                        colors = ButtonDefaults.buttonColors(containerColor = if (active) Navy else PageWhite, contentColor = if (active) Color.White else DeepNavy)
                     ) { Text(label, fontSize = 11.sp) }
                 }
             }
@@ -135,7 +153,7 @@ fun SettingsScreen(state: AppState, viewModel: CalculatorViewModel) {
         val notificationAllowed = Build.VERSION.SDK_INT < 33 || context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val exactAllowed = Build.VERSION.SDK_INT < 31 || alarmManager.canScheduleExactAlarms()
-        SettingCard("Reminder access", if (notificationAllowed && exactAllowed) "Ready" else "Permission needed for precise reminders") {
+        SettingCard("Reminder access", if (notificationAllowed && exactAllowed) "Ready" else "Permission needed for precise reminders", Icons.Rounded.NotificationsActive) {
             Text("Notifications: ${if (notificationAllowed) "Allowed" else "Not allowed"}", color = DeepNavy)
             Text("Exact reminders: ${if (exactAllowed) "Allowed" else "Approximate time"}", color = DeepNavy)
             if (!exactAllowed && Build.VERSION.SDK_INT >= 31) {
@@ -263,7 +281,8 @@ private fun LanguageChoice(
         onClick = { onSelect(language) },
         modifier = modifier.heightIn(min = 56.dp),
         shape = RoundedCornerShape(14.dp),
-        color = if (selected) Navy.copy(alpha = .12f) else SoftField,
+        color = if (selected) Navy.copy(alpha = .12f) else PageWhite,
+        shadowElevation = if (selected) 1.dp else 2.dp,
         border = BorderStroke(if (selected) 1.5.dp else 1.dp, if (selected) Navy else Line)
     ) {
         Row(
@@ -312,11 +331,18 @@ private fun LanguageChoice(
 }
 
 @Composable
-private fun SettingCard(title: String, subtitle: String, content: @Composable ColumnScope.() -> Unit) {
-    Card(colors = CardDefaults.cardColors(containerColor = PageWhite)) {
+private fun SettingCard(title: String, subtitle: String, icon: ImageVector, content: @Composable ColumnScope.() -> Unit) {
+    ReferenceCard {
         Column(Modifier.fillMaxWidth().padding(13.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(title, fontWeight = FontWeight.Black, fontSize = 16.sp, color = DeepNavy)
-            Text(subtitle, fontSize = 11.sp, color = Muted)
+            Row(horizontalArrangement = Arrangement.spacedBy(9.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                Surface(shape = RoundedCornerShape(10.dp), color = Navy.copy(alpha = .11f)) {
+                    Icon(icon, contentDescription = null, tint = Navy, modifier = Modifier.padding(7.dp).size(18.dp))
+                }
+                Column {
+                    Text(title, fontWeight = FontWeight.Black, fontSize = 16.sp, color = DeepNavy)
+                    Text(subtitle, fontSize = 11.sp, color = Muted)
+                }
+            }
             content()
         }
     }
