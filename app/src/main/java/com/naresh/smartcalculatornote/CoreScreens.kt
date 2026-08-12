@@ -44,8 +44,12 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -486,6 +490,7 @@ fun OriginalScreen(history: List<HistoryEntry>, onHistory: (List<HistoryEntry>) 
 @Composable
 fun FourValueScreen(state: AppState, viewModel: CalculatorViewModel) {
     val mode = state.fourValueMode
+    val financeMode = mode == FourValueMode.EMI || mode == FourValueMode.INTEREST
     var answer by remember(mode) { mutableStateOf<CalculationResult?>(null) }
     var emiAdvanced by rememberSaveable { mutableStateOf(false) }
     fun field(index: Int) = state.toolInputs[mode.valueKey(index)] ?: mode.defaultValues[index]
@@ -524,14 +529,15 @@ fun FourValueScreen(state: AppState, viewModel: CalculatorViewModel) {
         }
     }
     ScreenList {
-        item { PageHeader(mode.heading) }
+        item { PageHeader(if (financeMode) "4 Value Calculator" else mode.heading) }
         item { Spacer(Modifier.height(4.dp)) }
         item {
             ReferenceCard {
                 Column(Modifier.padding(7.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    FourValueMode.entries.chunked(4).forEach { group ->
+                    FourValueMode.entries.filterNot { it == FourValueMode.INTEREST }.chunked(4).forEach { group ->
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                             group.forEach { item ->
+                                val itemSelected = if (item == FourValueMode.EMI) financeMode else mode == item
                                 val modeIcon = when (item) {
                                     FourValueMode.DAILY -> Icons.Default.CurrencyRupee
                                     FourValueMode.MARKS -> Icons.Default.School
@@ -555,12 +561,12 @@ fun FourValueScreen(state: AppState, viewModel: CalculatorViewModel) {
                                     modifier = Modifier.weight(1f).height(39.dp),
                                     shape = RoundedCornerShape(9.dp),
                                     contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 2.dp, vertical = 2.dp),
-                                    colors = ButtonDefaults.outlinedButtonColors(containerColor = if (mode == item) Navy else PageWhite, contentColor = if (mode == item) Color.White else Muted),
-                                    border = BorderStroke(1.dp, if (mode == item) Navy else Line)
+                                    colors = ButtonDefaults.outlinedButtonColors(containerColor = if (itemSelected) Navy else PageWhite, contentColor = if (itemSelected) Color.White else Muted),
+                                    border = BorderStroke(1.dp, if (itemSelected) Navy else Line)
                                 ) {
                                     Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(modeIcon, contentDescription = item.label, tint = if (mode == item) Color.White else modeIconColor, modifier = Modifier.size(14.dp))
-                                        Text(item.label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
+                                        Icon(modeIcon, contentDescription = item.label, tint = if (itemSelected) Color.White else modeIconColor, modifier = Modifier.size(14.dp))
+                                        Text(if (item == FourValueMode.EMI) "Finance" else item.label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
                                     }
                                 }
                             }
@@ -571,41 +577,46 @@ fun FourValueScreen(state: AppState, viewModel: CalculatorViewModel) {
             }
         }
         item { Spacer(Modifier.height(6.dp)) }
-        if (mode == FourValueMode.EMI) {
+        if (financeMode) {
             item {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                    InterestTypeButton("Quick EMI", !emiAdvanced, Modifier.weight(1f)) { emiAdvanced = false; answer = null }
-                    InterestTypeButton("Advanced", emiAdvanced, Modifier.weight(1f)) { emiAdvanced = true; answer = null }
-                }
+                FinanceTypeSelector(
+                    mode = mode,
+                    interestType = state.toolInputs["four-interest-type"] ?: "simple",
+                    onEmi = { answer = null; emiAdvanced = false; viewModel.switchFourValueMode(FourValueMode.EMI) },
+                    onSimple = { answer = null; viewModel.switchFourValueMode(FourValueMode.INTEREST); viewModel.input("four-interest-type", "simple") },
+                    onCompound = { answer = null; viewModel.switchFourValueMode(FourValueMode.INTEREST); viewModel.input("four-interest-type", "compound") }
+                )
             }
             item { Spacer(Modifier.height(6.dp)) }
-            if (!emiAdvanced) {
+            if (mode == FourValueMode.EMI && !emiAdvanced) {
                 item {
-                    QuickEmiPanel(
+                    FinanceQuickEmiPanel(
                         principal = field(0), rate = field(1), tenure = field(2), tenureUnit = unit(2),
                         onPrincipal = { updateField(0, it) }, onRate = { updateField(1, it) }, onTenure = { updateField(2, it) },
-                        onTenureUnit = { updateUnit(2, it) }
+                        onTenureUnit = { updateUnit(2, it) },
+                        onAdvanced = { emiAdvanced = true; answer = null },
+                        onReset = { answer = null; viewModel.resetFourValueMode() }
                     )
                 }
                 return@ScreenList
             }
-        }
-        if (mode == FourValueMode.INTEREST) {
             item {
-                ReferenceCard {
-                    Row(Modifier.fillMaxWidth().padding(5.dp), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                        InterestTypeButton("Simple", state.toolInputs["four-interest-type"] != "compound", Modifier.weight(1f)) { answer = null; viewModel.input("four-interest-type", "simple") }
-                        InterestTypeButton("Compound", state.toolInputs["four-interest-type"] == "compound", Modifier.weight(1f)) { answer = null; viewModel.input("four-interest-type", "compound") }
-                    }
-                    if (state.toolInputs["four-interest-type"] == "compound") {
-                        Picker("Compounding: ${frequencyName(state.toolInputs["four-interest-frequency"] ?: "1")}", listOf("1", "2", "4", "12"), state.toolInputs["four-interest-frequency"] ?: "1", { frequencyName(it) }) {
-                            answer = null
-                            viewModel.input("four-interest-frequency", it)
-                        }
-                    }
-                }
+                FinanceAdvancedPanel(
+                    mode = mode,
+                    answer = answer,
+                    values = List(mode.fieldCount, ::field),
+                    units = List(mode.fieldCount, ::unit),
+                    interestFrequency = state.toolInputs["four-interest-frequency"] ?: "1",
+                    showFrequency = mode == FourValueMode.INTEREST && state.toolInputs["four-interest-type"] == "compound",
+                    onValue = ::updateField,
+                    onUnit = ::updateUnit,
+                    onFrequency = { answer = null; viewModel.input("four-interest-frequency", it) },
+                    onCalculate = ::calculate,
+                    onReset = { answer = null; viewModel.resetFourValueMode() },
+                    onQuick = if (mode == FourValueMode.EMI) ({ emiAdvanced = false; answer = null }) else null
+                )
             }
-            item { Spacer(Modifier.height(6.dp)) }
+            return@ScreenList
         }
         item {
             ReferenceCard {
@@ -669,7 +680,27 @@ fun FourValueScreen(state: AppState, viewModel: CalculatorViewModel) {
 }
 
 @Composable
-private fun QuickEmiPanel(
+private fun FinanceTypeSelector(
+    mode: FourValueMode,
+    interestType: String,
+    onEmi: () -> Unit,
+    onSimple: () -> Unit,
+    onCompound: () -> Unit
+) {
+    ReferenceCard {
+        Row(
+            Modifier.fillMaxWidth().padding(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            InterestTypeButton("Loan EMI", mode == FourValueMode.EMI, Modifier.weight(1f), onEmi)
+            InterestTypeButton("Simple Interest", mode == FourValueMode.INTEREST && interestType != "compound", Modifier.weight(1f), onSimple)
+            InterestTypeButton("Compound", mode == FourValueMode.INTEREST && interestType == "compound", Modifier.weight(1f), onCompound)
+        }
+    }
+}
+
+@Composable
+private fun FinanceQuickEmiPanel(
     principal: String,
     rate: String,
     tenure: String,
@@ -677,45 +708,272 @@ private fun QuickEmiPanel(
     onPrincipal: (String) -> Unit,
     onRate: (String) -> Unit,
     onTenure: (String) -> Unit,
-    onTenureUnit: (String) -> Unit
+    onTenureUnit: (String) -> Unit,
+    onAdvanced: () -> Unit,
+    onReset: () -> Unit
 ) {
+    var calculateRequested by rememberSaveable { mutableStateOf(false) }
     val months = ((tenure.number() * if (tenureUnit == "years") 12.0 else 1.0).roundToInt()).coerceAtLeast(0)
     val summary = CalculationEngine.emiSummary(principal.number(), rate.number(), months)
-    Column(verticalArrangement = Arrangement.spacedBy(9.dp)) {
+    val principalPercent = (summary?.principalPercent ?: 0.0).toFloat().coerceIn(0f, 100f)
+    val interestPercent = (summary?.interestPercent ?: 0.0).toFloat().coerceIn(0f, 100f)
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         ReferenceCard {
-            Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Input(principal, onPrincipal, "Loan amount")
-                Input(rate, onRate, "Annual interest rate %")
-                Input(tenure, onTenure, "Tenure")
-                Picker(if (tenureUnit == "years") "Years" else "Months", listOf("months", "years"), tenureUnit) { onTenureUnit(it) }
-            }
-        }
-        if (principal.isNotBlank() || rate.isNotBlank() || tenure.isNotBlank()) {
-            if (summary == null) {
-                ReferenceCard { Text("Enter a valid loan amount, rate and tenure.", color = AppRed, modifier = Modifier.padding(12.dp)) }
-            } else {
-                Card(colors = CardDefaults.cardColors(containerColor = Navy), shape = RoundedCornerShape(15.dp)) {
-                    Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Text("MONTHLY EMI", color = Color.White.copy(alpha = .78f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                        Text("₹ ${CalculationEngine.format(summary.monthlyEmi)}", color = Color.White, fontSize = 26.sp, fontWeight = FontWeight.Black)
-                        Text("Principal ₹ ${CalculationEngine.format(summary.principal)} · Interest ₹ ${CalculationEngine.format(summary.totalInterest)}", color = Color.White)
-                        Text("Total payment ₹ ${CalculationEngine.format(summary.totalPayment)}", color = Color.White, fontWeight = FontWeight.Bold)
-                        Text("Principal ${CalculationEngine.format(summary.principalPercent)}% · Interest ${CalculationEngine.format(summary.interestPercent)}%", color = Color.White.copy(alpha = .86f), fontSize = 11.sp)
+            Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Loan amount", color = Muted, fontSize = 9.sp, fontWeight = FontWeight.SemiBold)
+                Row(Modifier.fillMaxWidth().height(44.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("₹", color = DeepNavy, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+                    CompactTextField(
+                        value = principal,
+                        onValueChange = { calculateRequested = false; onPrincipal(CalculationEngine.rawTyping(it)) },
+                        modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        height = 42.dp,
+                        plainWhenIdle = true,
+                        textStyle = androidx.compose.ui.text.TextStyle(color = DeepNavy, fontSize = 23.sp, fontWeight = FontWeight.Black)
+                    )
+                    IconButton(onClick = onAdvanced, modifier = Modifier.size(38.dp)) {
+                        Icon(Icons.Default.Tune, contentDescription = "Advanced", tint = Navy, modifier = Modifier.size(19.dp))
                     }
                 }
-                ReferenceCard {
-                    Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-                        Text("YEAR-WISE BREAKUP", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Black)
-                        summary.yearlyRows.forEach { row ->
-                            Column(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                                Text("Year ${row.year}", color = DeepNavy, fontWeight = FontWeight.Black)
-                                Text("Principal ₹ ${CalculationEngine.format(row.principalPaid)} · Interest ₹ ${CalculationEngine.format(row.interestPaid)}", color = Muted, fontSize = 11.sp)
-                                Text("Balance ₹ ${CalculationEngine.format(row.closingBalance)}", color = Navy, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                HorizontalDivider(color = Line)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FinanceRateField(
+                        value = rate,
+                        onValue = { calculateRequested = false; onRate(it) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    FinanceTenureField(
+                        value = tenure,
+                        tenureUnit = tenureUnit,
+                        onValue = { calculateRequested = false; onTenure(it) },
+                        onUnit = { calculateRequested = false; onTenureUnit(it) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                if (calculateRequested && summary == null) {
+                    Text("Enter a valid loan amount, rate and tenure.", color = AppRed, fontSize = 11.sp)
+                }
+            }
+        }
+
+        ReferenceCard {
+            Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                Text("Your Monthly EMI", color = Navy, fontSize = 12.sp, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                Text(
+                    "₹ ${CalculationEngine.format(summary?.monthlyEmi ?: 0.0)}",
+                    color = Navy,
+                    fontSize = 30.sp,
+                    fontWeight = FontWeight.Black,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+                Text("Payable every month", color = Muted, fontSize = 10.sp, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    FinanceMetric("Principal", summary?.principal ?: 0.0, Modifier.weight(1f))
+                    FinanceMetric("Total Interest", summary?.totalInterest ?: 0.0, Modifier.weight(1f))
+                    FinanceMetric("Total payment", summary?.totalPayment ?: 0.0, Modifier.weight(1f))
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("${CalculationEngine.format(principalPercent.toDouble())}% Principal", color = Navy, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text("${CalculationEngine.format(interestPercent.toDouble())}% Interest", color = Color(0xFFE97918), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                }
+                LinearProgressIndicator(
+                    progress = { principalPercent / 100f },
+                    modifier = Modifier.fillMaxWidth().height(7.dp).clip(RoundedCornerShape(50)),
+                    color = Navy,
+                    trackColor = Color(0xFFFFD8B5)
+                )
+            }
+        }
+
+        Button(
+            onClick = { calculateRequested = true },
+            modifier = Modifier.fillMaxWidth().height(46.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Navy)
+        ) {
+            Icon(Icons.Default.AccountBalance, contentDescription = null, modifier = Modifier.size(17.dp))
+            Spacer(Modifier.width(7.dp))
+            Text("CALCULATE", fontWeight = FontWeight.Black, fontSize = 14.sp)
+        }
+        TextButton(
+            onClick = { calculateRequested = false; onReset() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(Icons.Default.Refresh, contentDescription = null, tint = Navy, modifier = Modifier.size(17.dp))
+            Spacer(Modifier.width(5.dp))
+            Text("RESET", color = Navy, fontWeight = FontWeight.Bold, fontSize = 11.sp)
+        }
+
+        if (summary != null) {
+            ReferenceCard {
+                Column(Modifier.padding(11.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text("YEAR-WISE BREAKUP", color = Muted, fontSize = 10.sp, fontWeight = FontWeight.Black)
+                    summary.yearlyRows.forEach { row ->
+                        Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Column(Modifier.weight(1f)) {
+                                Text("Year ${row.year}", color = DeepNavy, fontWeight = FontWeight.Black, fontSize = 11.sp)
+                                Text("Principal ₹ ${CalculationEngine.format(row.principalPaid)}", color = Muted, fontSize = 10.sp)
+                            }
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text("Interest ₹ ${CalculationEngine.format(row.interestPaid)}", color = Color(0xFFE97918), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                Text("Balance ₹ ${CalculationEngine.format(row.closingBalance)}", color = Navy, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun FinanceRateField(value: String, onValue: (String) -> Unit, modifier: Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text("Annual interest rate", color = Muted, fontSize = 8.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
+        Row(
+            Modifier.fillMaxWidth().height(43.dp).background(SoftField, RoundedCornerShape(9.dp)).border(1.dp, Line, RoundedCornerShape(9.dp)).padding(horizontal = 7.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("%", color = Muted, fontSize = 15.sp)
+            CompactTextField(
+                value = value,
+                onValueChange = { onValue(CalculationEngine.rawTyping(it)) },
+                modifier = Modifier.weight(1f).padding(start = 6.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                height = 41.dp,
+                plainWhenIdle = true,
+                textStyle = androidx.compose.ui.text.TextStyle(color = DeepNavy, fontSize = 16.sp, fontWeight = FontWeight.Black)
+            )
+        }
+    }
+}
+
+@Composable
+private fun FinanceTenureField(
+    value: String,
+    tenureUnit: String,
+    onValue: (String) -> Unit,
+    onUnit: (String) -> Unit,
+    modifier: Modifier
+) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text("Tenure", color = Muted, fontSize = 8.sp, fontWeight = FontWeight.SemiBold)
+        Row(
+            Modifier.fillMaxWidth().height(43.dp).background(SoftField, RoundedCornerShape(9.dp)).border(1.dp, Line, RoundedCornerShape(9.dp)).padding(horizontal = 5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CompactTextField(
+                value = value,
+                onValueChange = { onValue(CalculationEngine.rawTyping(it)) },
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                height = 41.dp,
+                plainWhenIdle = true,
+                textStyle = androidx.compose.ui.text.TextStyle(color = DeepNavy, fontSize = 16.sp, fontWeight = FontWeight.Black)
+            )
+            FinanceUnitButton("Years", tenureUnit == "years") { onUnit("years") }
+            Spacer(Modifier.width(2.dp))
+            FinanceUnitButton("Months", tenureUnit != "years") { onUnit("months") }
+        }
+    }
+}
+
+@Composable
+private fun FinanceUnitButton(text: String, selected: Boolean, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier.width(if (text == "Months") 51.dp else 44.dp).height(32.dp),
+        shape = RoundedCornerShape(7.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 2.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (selected) Navy else Color.Transparent,
+            contentColor = if (selected) Color.White else Muted
+        ),
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+    ) { Text(text, fontSize = 7.sp, fontWeight = FontWeight.SemiBold, maxLines = 1) }
+}
+
+@Composable
+private fun FinanceMetric(label: String, value: Double, modifier: Modifier) {
+    Column(modifier.padding(vertical = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(label, color = Muted, fontSize = 9.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center, maxLines = 1)
+        Text("₹ ${CalculationEngine.format(value)}", color = DeepNavy, fontSize = 11.sp, fontWeight = FontWeight.Black, textAlign = TextAlign.Center, maxLines = 1)
+    }
+}
+
+@Composable
+private fun FinanceAdvancedPanel(
+    mode: FourValueMode,
+    answer: CalculationResult?,
+    values: List<String>,
+    units: List<String>,
+    interestFrequency: String,
+    showFrequency: Boolean,
+    onValue: (Int, String) -> Unit,
+    onUnit: (Int, String) -> Unit,
+    onFrequency: (String) -> Unit,
+    onCalculate: () -> Unit,
+    onReset: () -> Unit,
+    onQuick: (() -> Unit)?
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        ReferenceCard {
+            Column(Modifier.padding(11.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            if (mode == FourValueMode.EMI) "Advanced EMI" else if (showFrequency) "Compound Interest" else "Simple Interest",
+                            color = DeepNavy,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Black
+                        )
+                        Text(if (mode == FourValueMode.EMI) "Leave one value empty to calculate it." else "Fill any 4 values — the empty value is calculated.", color = Muted, fontSize = 10.sp)
+                    }
+                    if (onQuick != null) TextButton(onClick = onQuick) { Text("Quick EMI", color = Navy, fontSize = 11.sp, fontWeight = FontWeight.Bold) }
+                }
+                if (showFrequency) {
+                    Picker("Compounding: ${frequencyName(interestFrequency)}", listOf("1", "2", "4", "12"), interestFrequency, { frequencyName(it) }, onFrequency)
+                }
+                mode.fieldLabels.indices.chunked(2).forEach { pair ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.Bottom) {
+                        pair.forEach { index ->
+                            FourValueField(
+                                label = mode.fieldLabels[index],
+                                value = values[index],
+                                unit = units[index],
+                                options = if (mode == FourValueMode.INTEREST && index == 2) listOf("years", "months") else CalculationEngine.smartUnitOptions(mode, index),
+                                onValue = { onValue(index, it) },
+                                onUnit = { onUnit(index, it) },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        if (pair.size == 1) Spacer(Modifier.weight(1f))
+                    }
+                }
+            }
+        }
+        ReferenceCard {
+            Column(Modifier.fillMaxWidth().padding(13.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text(if (mode == FourValueMode.EMI) "RESULT" else "Interest Summary", color = Navy, fontSize = 10.sp, fontWeight = FontWeight.Black)
+                val display = when {
+                    answer == null -> "₹ 0"
+                    answer.error != null -> answer.error
+                    answer.solvedIndex != null && answer.value != null -> CalculationEngine.formatSmart(answer.value, units[answer.solvedIndex])
+                    else -> answer.display
+                }
+                Text(display, color = if (answer?.error == null) Navy else AppRed, fontSize = if (answer?.error == null) 26.sp else 12.sp, fontWeight = FontWeight.Black)
+                Text(answer?.details?.joinToString(" · ") ?: "Enter values and calculate.", color = Muted, fontSize = 10.sp)
+            }
+        }
+        Button(onClick = onCalculate, modifier = Modifier.fillMaxWidth().height(46.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = Navy)) {
+            Text("CALCULATE", fontWeight = FontWeight.Black, fontSize = 14.sp)
+        }
+        TextButton(onClick = onReset, modifier = Modifier.fillMaxWidth()) {
+            Icon(Icons.Default.Refresh, contentDescription = null, tint = Navy, modifier = Modifier.size(17.dp))
+            Spacer(Modifier.width(5.dp))
+            Text("RESET", color = Navy, fontWeight = FontWeight.Bold, fontSize = 11.sp)
         }
     }
 }
@@ -732,9 +990,10 @@ private fun InterestTypeButton(text: String, selected: Boolean, modifier: Modifi
     OutlinedButton(
         onClick = click,
         modifier = modifier.height(42.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 2.dp),
         colors = ButtonDefaults.outlinedButtonColors(containerColor = if (selected) Navy else PageWhite, contentColor = if (selected) Color.White else DeepNavy),
         border = BorderStroke(1.dp, if (selected) Navy else Line)
-    ) { Text(text, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) }
+    ) { Text(text, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, maxLines = 1) }
 }
 
 @Composable

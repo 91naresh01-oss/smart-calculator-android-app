@@ -1,37 +1,36 @@
-# Language Picker Design QA
+# Finance Tool Design QA
 
 ## Evidence
 
-- Source visual truth: `C:\Users\91nar\AppData\Local\Temp\codex-clipboard-4610fbb7-dbde-4347-b233-f1070fcaa7f1.png`
-- Implementation, grouped view with flags: `D:\W\other project\smart calculator android app\app\build\qa\language-flags-settled.png`
-- Implementation, Indian-language scroll state with flags: `D:\W\other project\smart calculator android app\app\build\qa\language-flags-bottom.png`
-- Combined comparison: `D:\W\other project\smart calculator android app\app\build\qa\language-flags-comparison.png`
-- Viewport: Android emulator, 1080 x 2400 px, 420 dpi, dark theme, Gujarati app locale.
-- Comparison normalization: the 170 x 910 px source was scaled to the implementation height and placed beside the 1080 x 2400 px emulator capture. This comparison evaluates the requested redesign, not pixel fidelity to the narrow source menu.
+- Source visual truth: `C:\Users\91nar\AppData\Local\Temp\codex-clipboard-7df77d11-d9d3-4db6-9ef2-3f73940d571a.png`
+- Selected overall design: `C:\Users\91nar\.codex\generated_images\019ff11a-1f9f-75c0-9aa3-a6e6dec503d5\exec-ab985e39-751b-4c6d-b7f3-d85a046e609e.png`
+- Rendered implementation: `D:\W\other project\smart calculator android app\app\build\qa\finance-final-emi.png`
+- Focused comparison: `D:\W\other project\smart calculator android app\app\build\qa\finance-input-comparison.png`
+- Viewport: Android emulator, 1080 x 2400 px, 420 dpi, app light theme.
+- Source dimensions: 410 x 205 px. Implementation dimensions: 1080 x 2400 px. The focused app region was cropped to 1024 x 520 px and the source was proportionally scaled to the same height for visual comparison.
+- State: 4 VALUE > Finance > Loan EMI, amount 10,00,000, annual rate 8.5%, tenure 5 years.
 
-## Visual review
+## Required fidelity surfaces
 
-- Hierarchy: Phone Language remains the primary full-width choice. International Languages appears first, followed by Indian Languages.
-- Layout: both sections use the requested two-column cards with consistent spacing, borders, radii and minimum touch size.
-- Typography: native language names and language codes remain readable across Latin, Indian, Arabic and CJK scripts.
-- Color: semantic theme colors provide clear contrast in dark mode; the selected Gujarati card has a visible accent border and check badge.
-- Overflow: the modal scrolls cleanly. The bottom state includes Punjabi, Tamil, Telugu, Kannada and Malayalam without clipping.
-- Assets: real local country-flag PNGs render correctly without a network dependency. The Phone Language row uses the Material globe icon. The flag-icons MIT license is packaged in `res/raw`.
+- Fonts and typography: app font weight and hierarchy match the source intent; amount is dominant, labels are compact, and values do not wrap or clip.
+- Spacing and layout: Loan Amount uses the full first row; divider, rate field, tenure field, and embedded Years/Months toggle follow the source structure and rhythm.
+- Colors and tokens: white surface, soft slate fields, navy text, emerald selection and line colors use the app's semantic light/dark theme tokens.
+- Image and icon quality: the Material Tune icon faithfully represents the source control; no raster placeholder, emoji, custom SVG, or drawn substitute is used.
+- Copy and content: Loan amount, Annual interest rate, Tenure, Years, and Months match the requested design. Indian number grouping remains active.
 
-## Interaction review
+## Interaction evidence
 
-- Dialog opens from Settings.
-- Gujarati selection persists and is visually identified.
-- UI hierarchy confirms all eight international and all nine Indian languages are reachable.
-- Scroll to the final Indian-language row succeeds.
-- Representative country flags render for all international languages; India flags render for all Indian languages.
-- Debug compilation and unit tests pass after grouping.
+- Finance replaces the separate EMI and Interest mode cards.
+- Loan EMI, Simple Interest, and Compound tabs all switch successfully.
+- Compound displays the compounding-frequency selector.
+- EMI inputs accept 10,00,000, 8.5, and 5 years and render Monthly EMI 20,516.531, Total Interest 2,30,991.88, and Total Payment 12,30,991.88.
+- Existing Advanced EMI reverse calculation remains available from the Tune icon.
+- Unit tests, Android lint, debug build, release build, install, UI hierarchy checks, and emulator screenshots pass.
 
 ## Findings and comparison history
 
-- Pass 1: no P0, P1 or P2 visual issue found in the combined comparison.
-- Pass 1 focused scroll check: no clipping, overlap or inaccessible language card found.
-- No post-comparison visual fix was required.
+- Pass 1 found a P2 text-clipping issue in Simple Interest and Months caused by default button padding. Reduced finance selector padding and font size; post-fix UI hierarchy and screenshot show the complete labels.
+- Pass 2 found no remaining P0, P1, or P2 issue in the full screen or focused input comparison.
 
 ## Final result
 

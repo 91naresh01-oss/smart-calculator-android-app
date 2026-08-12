@@ -42,6 +42,12 @@ class CalculatorViewModel(private val repository: CalculatorRepository) : ViewMo
             toolInputs = current.toolInputs.filterKeys { !it.startsWith(prefix) } + mode.inputDefaults()
         )
     }
+    fun switchFourValueMode(mode: FourValueMode) = mutate { current ->
+        current.copy(
+            fourValueMode = mode,
+            toolInputs = mode.inputDefaults() + current.toolInputs
+        )
+    }
     fun resetFourValueMode() = mutate { current ->
         val mode = current.fourValueMode
         val prefix = "four-${mode.key}-"
