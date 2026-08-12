@@ -102,6 +102,28 @@ fun localizeUiText(text: String): String {
     val more = additionalValues[language].orEmpty()
     val moreIndex = additionalKeys.indexOfFirst { it.equals(text, ignoreCase = true) }
     if (moreIndex in more.indices) return more[moreIndex]
+    if (text == "Customize your calculator experience") return when (language) {
+        "gu" -> "તમારો કેલ્ક્યુલેટર અનુભવ ગોઠવો"; "hi" -> "अपने कैलकुलेटर अनुभव को अनुकूलित करें"; "bn" -> "আপনার ক্যালকুলেটর অভিজ্ঞতা সাজান"
+        "mr" -> "तुमचा कॅल्क्युलेटर अनुभव सानुकूल करा"; "pa" -> "ਆਪਣੇ ਕੈਲਕੁਲੇਟਰ ਅਨੁਭਵ ਨੂੰ ਅਨੁਕੂਲ ਬਣਾਓ"; "ta" -> "உங்கள் கணிப்பான் அனுபவத்தைத் தனிப்பயனாக்குங்கள்"
+        "te" -> "మీ కాలిక్యులేటర్ అనుభవాన్ని అనుకూలీకరించండి"; "kn" -> "ನಿಮ್ಮ ಕ್ಯಾಲ್ಕುಲೇಟರ್ ಅನುಭವವನ್ನು ಹೊಂದಿಸಿ"; "ml" -> "നിങ്ങളുടെ കാൽക്കുലേറ്റർ അനുഭവം ക്രമീകരിക്കുക"
+        "es" -> "Personaliza tu experiencia de cálculo"; "fr" -> "Personnalisez votre expérience de calcul"; "de" -> "Rechner-Erlebnis anpassen"
+        "ar" -> "خصّص تجربة الآلة الحاسبة"; "pt" -> "Personalize a sua experiência de cálculo"; "zh" -> "自定义计算器体验"; "ja" -> "電卓の使い方をカスタマイズ"
+        else -> text
+    }
+    if (text == "All systems ready") return when (language) {
+        "gu" -> "બધી સેટિંગ્સ તૈયાર"; "hi" -> "सभी सेटिंग्स तैयार"; "bn" -> "সব সেটিংস প্রস্তুত"; "mr" -> "सर्व सेटिंग्ज तयार"
+        "pa" -> "ਸਾਰੀਆਂ ਸੈਟਿੰਗਾਂ ਤਿਆਰ"; "ta" -> "அனைத்து அமைப்புகளும் தயார்"; "te" -> "అన్ని సెట్టింగ్‌లు సిద్ధంగా ఉన్నాయి"; "kn" -> "ಎಲ್ಲಾ ಸೆಟ್ಟಿಂಗ್‌ಗಳು ಸಿದ್ಧ"
+        "ml" -> "എല്ലാ ക്രമീകരണങ്ങളും തയ്യാറാണ്"; "es" -> "Todo está listo"; "fr" -> "Tout est prêt"; "de" -> "Alles ist bereit"
+        "ar" -> "كل الإعدادات جاهزة"; "pt" -> "Tudo está pronto"; "zh" -> "所有设置均已就绪"; "ja" -> "すべての設定が完了しました"
+        else -> text
+    }
+    if (text == "Your preferences are active") return when (language) {
+        "gu" -> "તમારી પસંદગીઓ સક્રિય છે"; "hi" -> "आपकी पसंद सक्रिय है"; "bn" -> "আপনার পছন্দ সক্রিয় আছে"; "mr" -> "तुमच्या निवडी सक्रिय आहेत"
+        "pa" -> "ਤੁਹਾਡੀਆਂ ਪਸੰਦਾਂ ਸਰਗਰਮ ਹਨ"; "ta" -> "உங்கள் விருப்பங்கள் செயலில் உள்ளன"; "te" -> "మీ ప్రాధాన్యతలు అమల్లో ఉన్నాయి"; "kn" -> "ನಿಮ್ಮ ಆಯ್ಕೆಗಳು ಸಕ್ರಿಯವಾಗಿವೆ"
+        "ml" -> "നിങ്ങളുടെ മുൻഗണനകൾ സജീവമാണ്"; "es" -> "Tus preferencias están activas"; "fr" -> "Vos préférences sont actives"; "de" -> "Ihre Einstellungen sind aktiv"
+        "ar" -> "تفضيلاتك مفعّلة"; "pt" -> "As suas preferências estão ativas"; "zh" -> "您的偏好设置已启用"; "ja" -> "設定が有効になっています"
+        else -> text
+    }
     if (text == "Edit note") return "${localizeUiText("Edit")} ${localizeUiText("Smart Note")}".trim()
     if (text == "Phone language") return when (language) {
         "gu" -> "ફોનની ભાષા"; "hi" -> "फोन की भाषा"; "bn" -> "ফোনের ভাষা"; "mr" -> "फोनची भाषा"; "pa" -> "ਫੋਨ ਦੀ ਭਾਸ਼ਾ"; "ta" -> "போன் மொழி"; "te" -> "ఫోన్ భాష"; "kn" -> "ಫೋನ್ ಭಾಷೆ"; "ml" -> "ഫോൺ ഭാഷ"; "es" -> "Idioma del teléfono"; "fr" -> "Langue du téléphone"; "de" -> "Telefonsprache"; "ar" -> "لغة الهاتف"; "pt" -> "Idioma do telefone"; "zh" -> "手机语言"; "ja" -> "端末の言語"; else -> text

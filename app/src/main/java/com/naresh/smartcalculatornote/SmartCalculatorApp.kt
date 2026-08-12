@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -258,23 +259,40 @@ fun Modifier.modernBoxSurface(
     .border(1.dp, borderColor, shape)
 
 @Composable
-fun ResetButton(onClick: () -> Unit) {
+fun ResetButton(onClick: () -> Unit, modifier: Modifier = Modifier.height(40.dp)) {
+    val shape = RoundedCornerShape(14.dp)
     Card(
         onClick = onClick,
-        modifier = Modifier.height(34.dp),
-        shape = RoundedCornerShape(9.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF4F4)),
-        border = BorderStroke(1.dp, Color(0xFFEABCC1)),
+        modifier = modifier.shadow(
+            elevation = 4.dp,
+            shape = shape,
+            spotColor = Color(0x2B000000),
+            ambientColor = Color(0x16000000)
+        ),
+        shape = shape,
+        colors = CardDefaults.cardColors(containerColor = PageWhite),
+        border = BorderStroke(1.dp, AppRed.copy(alpha = .24f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Box(contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier.fillMaxHeight().align(Alignment.CenterHorizontally),
+            contentAlignment = Alignment.Center
+        ) {
             Row(
-                modifier = Modifier.padding(horizontal = 11.dp),
+                modifier = Modifier.padding(horizontal = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(Icons.Default.Refresh, contentDescription = null, tint = Color(0xFFB43F4A), modifier = Modifier.size(13.dp))
-                Text("RESET", color = Color(0xFFB43F4A), fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                Surface(
+                    modifier = Modifier.size(27.dp),
+                    shape = RoundedCornerShape(9.dp),
+                    color = AppRed
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White, modifier = Modifier.size(15.dp))
+                    }
+                }
+                Text("RESET", color = DeepNavy, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = .7.sp)
             }
         }
     }

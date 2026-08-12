@@ -22,28 +22,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.shadow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CurrencyExchange
-import androidx.compose.material.icons.filled.CurrencyRupee
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Inventory2
-import androidx.compose.material.icons.filled.LocalGasStation
-import androidx.compose.material.icons.filled.LocalOffer
-import androidx.compose.material.icons.filled.Payments
-import androidx.compose.material.icons.filled.Percent
-import androidx.compose.material.icons.filled.Scale
-import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.SquareFoot
-import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.SwapVert
-import androidx.compose.material.icons.filled.Thermostat
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -59,7 +42,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -75,27 +57,27 @@ private data class ToolInfo(
     val id: String,
     val label: String,
     val hint: String,
-    val icon: ImageVector
+    val emoji: String
 )
 
 private val moreTools = listOf(
-    ToolInfo("length", "Length", "All length units", Icons.Default.Straighten),
-    ToolInfo("weight", "Weight", "All weight units", Icons.Default.Scale),
-    ToolInfo("area", "Area", "Land & surface", Icons.Default.SquareFoot),
-    ToolInfo("discount", "Discount", "Price saving", Icons.Default.LocalOffer),
-    ToolInfo("split", "Split Bill", "Per person", Icons.Default.Groups),
-    ToolInfo("rate", "Qty × Rate", "Quick total", Icons.Default.Inventory2),
-    ToolInfo("mileage", "Mileage", "km/L & cost", Icons.Default.LocalGasStation),
-    ToolInfo("temperature", "Temperature", "°C °F K", Icons.Default.Thermostat),
-    ToolInfo("time", "Time", "Convert time", Icons.Default.Schedule),
-    ToolInfo("daily", "Daily Price", "Unit price", Icons.Default.Payments),
-    ToolInfo("age", "Age / Date", "Age & date gap", Icons.Default.DateRange),
-    ToolInfo("percentage", "Percentage", "Percent tools", Icons.Default.Percent),
-    ToolInfo("gst", "GST", "Add / remove GST", Icons.AutoMirrored.Filled.ReceiptLong),
-    ToolInfo("emi", "EMI / Loan", "Monthly EMI", Icons.Default.Calculate),
-    ToolInfo("currency", "Currency", "Manual exchange", Icons.Default.CurrencyExchange),
-    ToolInfo("history", "History", "Saved results", Icons.Default.History),
-    ToolInfo("share", "Share", "Share summary", Icons.Default.Share)
+    ToolInfo("length", "Length", "All length units", "📏"),
+    ToolInfo("weight", "Weight", "All weight units", "⚖️"),
+    ToolInfo("area", "Area", "Land & surface", "📐"),
+    ToolInfo("discount", "Discount", "Price saving", "🏷️"),
+    ToolInfo("split", "Split Bill", "Per person", "👥"),
+    ToolInfo("rate", "Qty × Rate", "Quick total", "📦"),
+    ToolInfo("mileage", "Mileage", "km/L & cost", "⛽"),
+    ToolInfo("temperature", "Temperature", "°C °F K", "🌡️"),
+    ToolInfo("time", "Time", "Convert time", "⏱️"),
+    ToolInfo("daily", "Daily Price", "Unit price", "💰"),
+    ToolInfo("age", "Age / Date", "Age & date gap", "🎂"),
+    ToolInfo("percentage", "Percentage", "Percent tools", "%"),
+    ToolInfo("gst", "GST", "Add / remove GST", "🧾"),
+    ToolInfo("emi", "EMI / Loan", "Monthly EMI", "🏦"),
+    ToolInfo("currency", "Currency", "Manual exchange", "💱"),
+    ToolInfo("history", "History", "Saved results", "🕒"),
+    ToolInfo("share", "Share", "Share summary", "📤")
 )
 
 @Composable
@@ -104,8 +86,7 @@ fun MoreScreen(state: AppState, viewModel: CalculatorViewModel, onShare: () -> U
     val metrics = LocalReferenceLayoutMetrics.current
     if (selected == "settings") {
         ScreenList {
-            item { MoreToolHeader("Settings", onBack = { viewModel.selectMoreTool(null) }) }
-            item { SettingsScreen(state, viewModel) }
+            item { SettingsScreen(state, viewModel, onBack = { viewModel.selectMoreTool(null) }) }
         }
         return
     }
@@ -179,17 +160,13 @@ private fun MoreToolTile(tool: ToolInfo, modifier: Modifier, onClick: () -> Unit
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            androidx.compose.material3.Surface(
-                shape = RoundedCornerShape(10.dp),
-                color = Navy.copy(alpha = .11f)
-            ) {
-                Icon(
-                    imageVector = tool.icon,
-                    contentDescription = tool.label,
-                    tint = Navy,
-                    modifier = Modifier.padding(6.dp).size(19.dp)
-                )
-            }
+            Text(
+                tool.emoji,
+                fontSize = if (tool.emoji == "%") 23.sp else 25.sp,
+                fontWeight = if (tool.emoji == "%") FontWeight.Bold else FontWeight.Normal,
+                color = if (tool.emoji == "%") Navy else Color.Unspecified,
+                textAlign = TextAlign.Center
+            )
             Spacer(Modifier.height(4.dp))
             Text(tool.label, color = DeepNavy, fontWeight = FontWeight.Bold, fontSize = 13.sp, maxLines = 1)
         }

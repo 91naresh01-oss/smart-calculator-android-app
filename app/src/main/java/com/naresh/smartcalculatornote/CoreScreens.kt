@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -64,6 +65,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -471,17 +473,34 @@ fun OriginalScreen(history: List<HistoryEntry>, onHistory: (List<HistoryEntry>) 
                         val reset = key == "C"
                         val equal = key == "="
                         val percent = key == "%"
-                        Button(
-                            onClick = { press(key) },
-                            modifier = Modifier.height(52.dp),
-                            shape = RoundedCornerShape(9.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = when { equal -> Navy; reset -> Color(0xFFFFF1F2); percent -> Color(0xFFFFF8E9); action -> Color(0xFFF0F5FF); else -> PageWhite },
-                                contentColor = when { equal -> Color.White; reset -> AppRed; percent -> Color(0xFFB66A00); action -> Navy; else -> DeepNavy }
-                            ),
-                            border = if (equal) null else BorderStroke(1.dp, if (percent) Color(0xFFF3D28F) else Line)
-                        ) {
-                            Text(when (key) { "/" -> "÷"; "*" -> "×"; else -> key }, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        if (reset) {
+                            val resetShape = RoundedCornerShape(13.dp)
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(52.dp)
+                                    .clip(resetShape)
+                                    .background(Color(0xFFF7E9E8))
+                                    .border(1.dp, Color(0xFFEABCC1), resetShape)
+                                    .pointerInput(key) { detectTapGestures(onTap = { press(key) }) },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("C", color = AppRed, fontWeight = FontWeight.ExtraBold, fontSize = 21.sp)
+                            }
+                        } else {
+                            Button(
+                                onClick = { press(key) },
+                                modifier = Modifier.height(52.dp),
+                                shape = RoundedCornerShape(9.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = when { equal -> Navy; percent -> Color(0xFFFFF8E9); action -> Color(0xFFF0F5FF); else -> PageWhite },
+                                    contentColor = when { equal -> Color.White; percent -> Color(0xFFB66A00); action -> Navy; else -> DeepNavy }
+                                ),
+                                border = if (equal) null else BorderStroke(1.dp, if (percent) Color(0xFFF3D28F) else Line),
+                                elevation = ButtonDefaults.buttonElevation(defaultElevation = 1.dp, pressedElevation = 0.dp)
+                            ) {
+                                Text(when (key) { "/" -> "÷"; "*" -> "×"; else -> key }, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                            }
                         }
                     }
                 }
@@ -645,13 +664,10 @@ fun FourValueScreen(state: AppState, viewModel: CalculatorViewModel) {
         }
         item { Spacer(Modifier.height(14.dp)) }
         item {
-            OutlinedButton(
+            ResetButton(
                 onClick = { answer = null; viewModel.resetFourValueMode() },
-                modifier = Modifier.fillMaxWidth().height(38.dp),
-                shape = RoundedCornerShape(10.dp),
-                border = BorderStroke(1.dp, Color(0xFFEABCC1)),
-                colors = ButtonDefaults.outlinedButtonColors(containerColor = Color(0xFFFFF4F4), contentColor = Color(0xFFB43F4A))
-            ) { Text("↻ RESET", fontWeight = FontWeight.Bold, fontSize = 11.sp) }
+                modifier = Modifier.fillMaxWidth().height(44.dp)
+            )
         }
         item { Spacer(Modifier.height(14.dp)) }
         item {
@@ -800,14 +816,7 @@ private fun FinanceQuickEmiPanel(
             Spacer(Modifier.width(7.dp))
             Text("CALCULATE", fontWeight = FontWeight.Black, fontSize = 14.sp)
         }
-        TextButton(
-            onClick = { calculateRequested = false; onReset() },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(Icons.Default.Refresh, contentDescription = null, tint = Navy, modifier = Modifier.size(17.dp))
-            Spacer(Modifier.width(5.dp))
-            Text("RESET", color = Navy, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-        }
+        ResetButton(onClick = { calculateRequested = false; onReset() }, modifier = Modifier.fillMaxWidth().height(44.dp))
 
         if (summary != null) {
             ReferenceCard {
@@ -973,11 +982,7 @@ private fun FinanceAdvancedPanel(
         Button(onClick = onCalculate, modifier = Modifier.fillMaxWidth().height(46.dp), shape = RoundedCornerShape(12.dp), colors = ButtonDefaults.buttonColors(containerColor = Navy)) {
             Text("CALCULATE", fontWeight = FontWeight.Black, fontSize = 14.sp)
         }
-        TextButton(onClick = onReset, modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.Default.Refresh, contentDescription = null, tint = Navy, modifier = Modifier.size(17.dp))
-            Spacer(Modifier.width(5.dp))
-            Text("RESET", color = Navy, fontWeight = FontWeight.Bold, fontSize = 11.sp)
-        }
+        ResetButton(onClick = onReset, modifier = Modifier.fillMaxWidth().height(44.dp))
     }
 }
 
