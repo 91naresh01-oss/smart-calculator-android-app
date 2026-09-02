@@ -16,9 +16,19 @@ android {
         versionName = "1.0.0"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("${rootProject.projectDir}/release.jks")
+            storePassword = "smartcalc123"
+            keyAlias = "smartcalc"
+            keyPassword = "smartcalc123"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
