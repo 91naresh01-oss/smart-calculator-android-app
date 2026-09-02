@@ -1,28 +1,37 @@
 @echo off
 setlocal
 
-set "SDK_ROOT=%LOCALAPPDATA%\Android\Sdk"
+set "SDK_ROOT=C:\Users\91nar\AppData\Local\Packages\OpenAI.Codex_2p2nqsd0c76g0\LocalCache\Local\Android\Sdk"
+if not exist "%SDK_ROOT%\emulator\emulator.exe" (
+  set "SDK_ROOT=%LOCALAPPDATA%\Android\Sdk"
+)
+
 set "EMULATOR=%SDK_ROOT%\emulator\emulator.exe"
 set "ADB=%SDK_ROOT%\platform-tools\adb.exe"
-set "AVD_NAME=SmartCalculatorNewApi35"
+set "AVD_NAME=JungleGuardian_QA"
 
 if not exist "%EMULATOR%" (
   echo Android Emulator was not found at:
   echo %EMULATOR%
-  echo Open Android Studio once and install Android Emulator from SDK Manager.
+  echo Please make sure Android SDK emulator is installed.
   pause
   exit /b 1
 )
 
+echo Checking available emulators...
 "%EMULATOR%" -list-avds | findstr /X /C:"%AVD_NAME%" >nul
 if errorlevel 1 (
-  echo The %AVD_NAME% emulator is not available.
-  echo Open Android Studio ^> Device Manager and create an API 35 phone emulator.
+  for /f "delims=" %%i in ('"%EMULATOR%" -list-avds') do (
+    set "AVD_NAME=%%i"
+    goto :found_avd
+  )
+  echo No Android Virtual Device found.
   pause
   exit /b 1
 )
 
-echo Opening %AVD_NAME%...
-start "Smart Calculator Emulator" "%EMULATOR%" -avd %AVD_NAME% -gpu host
-echo Wait until Android home screen appears, then run or install the app.
-pause
+:found_avd
+echo Launching emulator %AVD_NAME%...
+start "" "%EMULATOR%" -avd "%AVD_NAME%" -gpu host
+echo Emulator is starting. Please wait for the system to boot up.
+
