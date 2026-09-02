@@ -32,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.CurrencyRupee
@@ -51,6 +52,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -65,6 +67,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -554,56 +557,43 @@ fun FourValueScreen(state: AppState, viewModel: CalculatorViewModel) {
             viewModel.input(mode.valueKey(result.solvedIndex), CalculationEngine.raw(result.value))
         }
     }
-    ScreenList {
-        item { PageHeader(if (financeMode) "4 Value Calculator" else mode.heading) }
-        item { Spacer(Modifier.height(4.dp)) }
+    val isLightTheme = MaterialTheme.colorScheme.background.luminance() > 0.5f
+    val screenBackground = if (isLightTheme) Color(0xFFF4FAF8) else MaterialTheme.colorScheme.background
+    Box(Modifier.fillMaxSize().background(screenBackground)) {
+      ScreenList {
+        item { Spacer(Modifier.height(29.dp)) }
         item {
-            ReferenceCard {
-                Column(Modifier.padding(7.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    FourValueMode.entries.filterNot { it == FourValueMode.INTEREST }.chunked(4).forEach { group ->
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                            group.forEach { item ->
-                                val itemSelected = if (item == FourValueMode.EMI) financeMode else mode == item
-                                val modeIcon = when (item) {
-                                    FourValueMode.DAILY -> Icons.Default.CurrencyRupee
-                                    FourValueMode.MARKS -> Icons.Default.School
-                                    FourValueMode.PERCENT -> Icons.Default.Percent
-                                    FourValueMode.EMI -> Icons.Default.AccountBalance
-                                    FourValueMode.PROFIT -> Icons.AutoMirrored.Filled.TrendingUp
-                                    FourValueMode.INTEREST -> Icons.Default.Savings
-                                    FourValueMode.GENERAL -> Icons.Default.Tune
-                                }
-                                val modeIconColor = when (item) {
-                                    FourValueMode.DAILY -> Color(0xFFE97918)
-                                    FourValueMode.MARKS -> Color(0xFF6A45A8)
-                                    FourValueMode.PERCENT -> Color(0xFF1E63C6)
-                                    FourValueMode.EMI -> Color(0xFF008A75)
-                                    FourValueMode.PROFIT -> Color(0xFF0C9B63)
-                                    FourValueMode.INTEREST -> Color(0xFF008B9A)
-                                    FourValueMode.GENERAL -> Color(0xFF7655B5)
-                                }
-                                OutlinedButton(
-                                    onClick = { answer = null; viewModel.selectFourValueMode(item) },
-                                    modifier = Modifier.weight(1f).height(39.dp),
-                                    shape = RoundedCornerShape(9.dp),
-                                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 2.dp, vertical = 2.dp),
-                                    colors = ButtonDefaults.outlinedButtonColors(containerColor = if (itemSelected) Navy else PageWhite, contentColor = if (itemSelected) Color.White else Muted),
-                                    border = BorderStroke(1.dp, if (itemSelected) Navy else Line)
-                                ) {
-                                    Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(modeIcon, contentDescription = item.label, tint = if (itemSelected) Color.White else modeIconColor, modifier = Modifier.size(14.dp))
-                                        Text(if (item == FourValueMode.EMI) "Finance" else item.label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center)
-                                    }
-                                }
-                            }
-                            repeat(4 - group.size) { Spacer(Modifier.weight(1f)) }
+            Text(
+                if (financeMode) "4 Value Calculator" else mode.heading,
+                color = if (isLightTheme) Color.Black else DeepNavy,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        item { Spacer(Modifier.height(12.dp)) }
+        item {
+            Column {
+                FourValueModeSelector(
+                    selected = mode,
+                    financeSelected = financeMode,
+                    onSelect = {
+                        answer = null
+                        viewModel.selectFourValueMode(it)
+                    }
+                )
+                if (!financeMode) {
+                    Spacer(Modifier.height(30.dp))
+                    Row(Modifier.fillMaxWidth().padding(end = 8.dp), horizontalArrangement = Arrangement.End) {
+                        FourValueResetAction {
+                            answer = null
+                            viewModel.resetFourValueMode()
                         }
                     }
                 }
             }
         }
-        item { Spacer(Modifier.height(6.dp)) }
         if (financeMode) {
+            item { Spacer(Modifier.height(6.dp)) }
             item {
                 FinanceTypeSelector(
                     mode = mode,
@@ -645,19 +635,27 @@ fun FourValueScreen(state: AppState, viewModel: CalculatorViewModel) {
             return@ScreenList
         }
         item {
-            ReferenceCard {
-                Column(Modifier.fillMaxWidth().padding(horizontal = 9.dp, vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    mode.fieldLabels.indices.chunked(2).forEach { pair ->
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(13.dp), verticalAlignment = Alignment.Bottom) {
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(21.dp)) {
+                mode.fieldLabels.indices.chunked(2).forEach { pair ->
+                    FourValueSurface {
+                        Row(
+                            Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, top = 12.dp, bottom = 17.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.Bottom
+                        ) {
                             pair.forEach { index ->
                                 FourValueField(
                                     label = mode.fieldLabels[index],
                                     value = field(index),
                                     unit = unit(index),
-                                    options = if (mode == FourValueMode.INTEREST && index == 2) listOf("years", "months") else CalculationEngine.smartUnitOptions(mode, index),
+                                    options = CalculationEngine.smartUnitOptions(mode, index),
                                     onValue = { updateField(index, it) },
                                     onUnit = { updateUnit(index, it) },
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f),
+                                    fieldHeight = 60.dp,
+                                    unitWidth = 52.dp,
+                                    labelAlignment = Alignment.Start,
+                                    fieldTextAlign = TextAlign.Start
                                 )
                             }
                             if (pair.size == 1) Spacer(Modifier.weight(1f))
@@ -666,18 +664,11 @@ fun FourValueScreen(state: AppState, viewModel: CalculatorViewModel) {
                 }
             }
         }
-        item { Spacer(Modifier.height(14.dp)) }
+        item { Spacer(Modifier.height(24.dp)) }
         item {
-            ResetButton(
-                onClick = { answer = null; viewModel.resetFourValueMode() },
-                modifier = Modifier.fillMaxWidth().height(44.dp)
-            )
-        }
-        item { Spacer(Modifier.height(14.dp)) }
-        item {
-            ReferenceCard {
-                Column(Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
-                    Text("RESULT", color = Cyan, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            FourValueSurface(modifier = Modifier.heightIn(min = 122.dp)) {
+                Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("RESULT", color = Navy, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                     val shown = answer
                     val answerText = when {
                         shown == null -> "—"
@@ -685,21 +676,132 @@ fun FourValueScreen(state: AppState, viewModel: CalculatorViewModel) {
                         shown.solvedIndex != null && shown.value != null -> CalculationEngine.formatSmart(shown.value, unit(shown.solvedIndex))
                         else -> shown.display
                     }
-                    Text(answerText, color = if (shown?.error == null) Navy else AppRed, fontSize = if (shown?.error == null) 21.sp else 13.sp, fontWeight = FontWeight.Bold)
-                    Text(shown?.details?.joinToString(" · ") ?: if (mode == FourValueMode.INTEREST) "Fill any 4 values — the empty value is calculated." else "Fill any 3 values — the empty value is calculated.", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Normal)
+                    Text(answerText, color = if (shown?.error == null) Navy else AppRed, fontSize = if (shown?.error == null) 22.sp else 13.sp, fontWeight = FontWeight.Bold)
+                    Text(shown?.details?.joinToString(" · ") ?: "Fill any 3 values — the empty value is calculated.", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Normal)
                 }
             }
         }
-        item { Spacer(Modifier.height(14.dp)) }
+        item { Spacer(Modifier.height(8.dp)) }
         item {
+            val buttonShape = RoundedCornerShape(12.dp)
+            val buttonBrush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                colors = listOf(Color(0xFF118068), Color(0xFF006052))
+            )
             Button(
                 onClick = ::calculate,
-                modifier = Modifier.fillMaxWidth().height(45.dp),
-                shape = RoundedCornerShape(11.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Navy)
-            ) { Text("CALCULATE", fontWeight = FontWeight.Bold, fontSize = 14.sp) }
+                modifier = Modifier.padding(start = 1.dp, end = 8.dp).fillMaxWidth().height(57.dp).shadow(
+                    elevation = 7.dp,
+                    shape = buttonShape,
+                    spotColor = Color(0xFF208E77).copy(alpha = 0.48f),
+                    ambientColor = Color(0xFF75C8B4).copy(alpha = 0.25f)
+                ).clip(buttonShape).background(buttonBrush),
+                shape = buttonShape,
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 0.dp)
+            ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Calculate, contentDescription = null, modifier = Modifier.size(22.dp))
+                    Text("CALCULATE", fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                }
+            }
+        }
+      }
+    }
+}
+
+@Composable
+private fun FourValueModeSelector(selected: FourValueMode, financeSelected: Boolean, onSelect: (FourValueMode) -> Unit) {
+    Column(Modifier.padding(start = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        FourValueMode.entries.filterNot { it == FourValueMode.INTEREST }.chunked(4).forEach { group ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                group.forEach { item ->
+                    val itemSelected = if (item == FourValueMode.EMI) financeSelected else selected == item
+                    val icon = when (item) {
+                        FourValueMode.DAILY -> Icons.Default.CurrencyRupee
+                        FourValueMode.MARKS -> Icons.Default.School
+                        FourValueMode.PERCENT -> Icons.Default.Percent
+                        FourValueMode.EMI -> Icons.Default.AccountBalance
+                        FourValueMode.PROFIT -> Icons.AutoMirrored.Filled.TrendingUp
+                        FourValueMode.INTEREST -> Icons.Default.Savings
+                        FourValueMode.GENERAL -> Icons.Default.Tune
+                    }
+                    val iconColor = when (item) {
+                        FourValueMode.DAILY -> Color(0xFF167A62)
+                        FourValueMode.MARKS -> Color(0xFF6A45A8)
+                        FourValueMode.PERCENT -> Color(0xFF2C71DE)
+                        FourValueMode.EMI -> Color(0xFF008A75)
+                        FourValueMode.PROFIT -> Color(0xFF18A673)
+                        FourValueMode.INTEREST -> Color(0xFF008B9A)
+                        FourValueMode.GENERAL -> Color(0xFF8A5CC8)
+                    }
+                    val shape = RoundedCornerShape(13.dp)
+                    val chipWidth = when (item) {
+                        FourValueMode.DAILY, FourValueMode.PROFIT -> 84.dp
+                        FourValueMode.MARKS -> 90.dp
+                        FourValueMode.PERCENT -> 95.dp
+                        FourValueMode.EMI, FourValueMode.INTEREST -> 89.dp
+                        FourValueMode.GENERAL -> 96.dp
+                    }
+                    val selectedBrush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                        colors = listOf(Color(0xFF16846A), Color(0xFF006B59))
+                    )
+                    OutlinedButton(
+                        onClick = { onSelect(item) },
+                        modifier = Modifier.width(chipWidth).height(46.dp).shadow(
+                            elevation = if (itemSelected) 10.dp else 8.dp,
+                            shape = shape,
+                            spotColor = if (itemSelected) Color(0xFF0C8068).copy(alpha = 0.52f) else Color(0xFF78B9A8).copy(alpha = 0.26f),
+                            ambientColor = Color(0xFFBFE9DE).copy(alpha = 0.28f)
+                        ).clip(shape).then(if (itemSelected) Modifier.background(selectedBrush) else Modifier),
+                        shape = shape,
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 3.dp, vertical = 2.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = if (itemSelected) Color.Transparent else Color(0xFFFCFEFD),
+                            contentColor = if (itemSelected) Color.White else Muted
+                        ),
+                        border = BorderStroke(1.dp, if (itemSelected) Color(0xFF0A765F) else Color(0xFFE2ECE9))
+                    ) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(icon, contentDescription = item.label, tint = if (itemSelected) Color.White else iconColor, modifier = Modifier.size(14.dp))
+                            Text(if (item == FourValueMode.EMI) "Finance" else item.label, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center, maxLines = 1)
+                        }
+                    }
+                }
+            }
         }
     }
+}
+
+@Composable
+private fun FourValueResetAction(onClick: () -> Unit) {
+    TextButton(
+        onClick = onClick,
+        modifier = Modifier.height(36.dp),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 5.dp, vertical = 0.dp),
+        colors = ButtonDefaults.textButtonColors(contentColor = Navy)
+    ) {
+        Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(15.dp))
+            Text("RESET", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+private fun FourValueSurface(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    val shape = RoundedCornerShape(16.dp)
+    Card(
+        modifier = modifier.padding(start = 2.dp, end = 6.dp).fillMaxWidth().shadow(
+            elevation = 18.dp,
+            shape = shape,
+            spotColor = Color(0xFF50A890).copy(alpha = 0.42f),
+            ambientColor = Color(0xFFB2E2D5).copy(alpha = 0.36f)
+        ),
+        shape = shape,
+        colors = CardDefaults.cardColors(containerColor = if (MaterialTheme.colorScheme.background.luminance() > 0.5f) Color(0xFFFCFEFD) else MaterialTheme.colorScheme.surface),
+        border = BorderStroke(0.5.dp, Color(0xFFE7F0ED)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) { content() }
 }
 
 @Composable
@@ -1009,23 +1111,44 @@ private fun InterestTypeButton(text: String, selected: Boolean, modifier: Modifi
 }
 
 @Composable
-private fun FourValueField(label: String, value: String, unit: String, options: List<String>, onValue: (String) -> Unit, onUnit: (String) -> Unit, modifier: Modifier) {
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(label, color = Muted, fontWeight = FontWeight.SemiBold, fontSize = 10.sp, textAlign = TextAlign.Center)
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+private fun FourValueField(
+    label: String,
+    value: String,
+    unit: String,
+    options: List<String>,
+    onValue: (String) -> Unit,
+    onUnit: (String) -> Unit,
+    modifier: Modifier,
+    fieldHeight: androidx.compose.ui.unit.Dp = 42.dp,
+    unitWidth: androidx.compose.ui.unit.Dp = 68.dp,
+    labelAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
+    fieldTextAlign: TextAlign = TextAlign.Center
+) {
+    Column(modifier, horizontalAlignment = labelAlignment, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(label, color = if (labelAlignment == Alignment.Start) Navy else Muted, fontWeight = FontWeight.SemiBold, fontSize = 10.sp, textAlign = fieldTextAlign)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(0.dp), verticalAlignment = Alignment.CenterVertically) {
+            val controlShape = RoundedCornerShape(11.dp)
             CompactTextField(
                 value = value,
                 onValueChange = onValue,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f).shadow(
+                    elevation = 9.dp,
+                    shape = controlShape,
+                    spotColor = Color(0xFF64B29D).copy(alpha = 0.34f),
+                    ambientColor = Color(0xFFC0E6DC).copy(alpha = 0.38f)
+                ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                height = 42.dp,
-                textStyle = androidx.compose.ui.text.TextStyle(textAlign = TextAlign.Center)
+                height = fieldHeight,
+                shape = controlShape,
+                textStyle = androidx.compose.ui.text.TextStyle(textAlign = fieldTextAlign, color = DeepNavy, fontSize = 15.sp),
+                focusedBorderColor = Color(0xFF18A892),
+                idleBorderColor = Color(0xFFE0EAE7)
             )
             if (unit.isNotBlank()) {
                 if (options.size > 1) {
-                    CompactPicker(unit, options, { CalculationEngine.smartUnitLabel(it) }, onUnit, Modifier.width(68.dp))
+                    CompactPicker(unit, options, { CalculationEngine.smartUnitLabel(it) }, onUnit, Modifier.width(unitWidth), fieldHeight)
                 } else {
-                    UnitPill(CalculationEngine.smartUnitLabel(unit), Modifier.width(68.dp))
+                    UnitPill(CalculationEngine.smartUnitLabel(unit), Modifier.width(unitWidth), fieldHeight)
                 }
             }
         }
@@ -1033,17 +1156,30 @@ private fun FourValueField(label: String, value: String, unit: String, options: 
 }
 
 @Composable
-private fun CompactPicker(selected: String, options: List<String>, label: (String) -> String, onSelect: (String) -> Unit, modifier: Modifier) {
+private fun CompactPicker(
+    selected: String,
+    options: List<String>,
+    label: (String) -> String,
+    onSelect: (String) -> Unit,
+    modifier: Modifier,
+    height: androidx.compose.ui.unit.Dp = 42.dp
+) {
     var expanded by remember { mutableStateOf(false) }
     Box(modifier) {
+        val shape = RoundedCornerShape(11.dp)
         OutlinedButton(
             onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth().height(42.dp).modernBoxSurface(RoundedCornerShape(10.dp), 2.dp),
+            modifier = Modifier.fillMaxWidth().height(height).shadow(
+                elevation = 9.dp,
+                shape = shape,
+                spotColor = Color(0xFF64B29D).copy(alpha = 0.34f),
+                ambientColor = Color(0xFFC0E6DC).copy(alpha = 0.38f)
+            ).modernBoxSurface(shape, 1.dp, Color(0xFFE0EAE7)),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp),
-            shape = RoundedCornerShape(10.dp),
+            shape = shape,
             border = BorderStroke(0.dp, Color.Transparent),
             colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent, contentColor = DeepNavy)
-        ) { Text(label(selected), fontSize = 12.sp, fontWeight = FontWeight.SemiBold) }
+        ) { Text(label(selected), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 1) }
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
@@ -1067,9 +1203,18 @@ private fun CompactPicker(selected: String, options: List<String>, label: (Strin
 }
 
 @Composable
-private fun UnitPill(value: String, modifier: Modifier) {
-    Box(modifier.height(42.dp).modernBoxSurface(RoundedCornerShape(10.dp), 2.dp), contentAlignment = Alignment.Center) {
-        Text(value, color = DeepNavy, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 9.dp))
+private fun UnitPill(value: String, modifier: Modifier, height: androidx.compose.ui.unit.Dp = 42.dp) {
+    val shape = RoundedCornerShape(11.dp)
+    Box(
+        modifier.height(height).shadow(
+            elevation = 9.dp,
+            shape = shape,
+            spotColor = Color(0xFF64B29D).copy(alpha = 0.34f),
+            ambientColor = Color(0xFFC0E6DC).copy(alpha = 0.38f)
+        ).modernBoxSurface(shape, 1.dp, Color(0xFFE0EAE7)),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(value, color = Navy, fontWeight = FontWeight.SemiBold, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 6.dp), maxLines = 1)
     }
 }
 

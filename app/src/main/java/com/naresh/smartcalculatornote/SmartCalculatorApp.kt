@@ -155,11 +155,18 @@ private fun AppNavigation(selected: MainTab, select: (MainTab) -> Unit) {
         MainTab.FOUR_VALUE to R.drawable.ic_nav_four,
         MainTab.CASH to R.drawable.ic_nav_cash
     )
+    val navigationOrder = listOf(
+        MainTab.ORIGINAL,
+        MainTab.FOUR_VALUE,
+        MainTab.CASH,
+        MainTab.CAL,
+        MainTab.MORE
+    )
     Row(
         modifier = Modifier.fillMaxWidth().height(54.dp).background(MaterialTheme.colorScheme.surface),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        MainTab.entries.forEach { tab ->
+        navigationOrder.forEach { tab ->
             val active = selected == tab
             Box(
                 modifier = Modifier.weight(1f).height(54.dp)

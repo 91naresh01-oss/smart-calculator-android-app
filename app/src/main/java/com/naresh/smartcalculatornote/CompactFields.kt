@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.TextRange
@@ -63,14 +64,16 @@ fun CompactTextField(
     shape: Shape = CompactFieldShape,
     plainWhenIdle: Boolean = false,
     autoFit: Boolean = true,
-    indianNumber: Boolean = keyboardOptions.keyboardType == KeyboardType.Number || keyboardOptions.keyboardType == KeyboardType.Decimal
+    indianNumber: Boolean = keyboardOptions.keyboardType == KeyboardType.Number || keyboardOptions.keyboardType == KeyboardType.Decimal,
+    focusedBorderColor: Color = Color.Unspecified,
+    idleBorderColor: Color = Color.Unspecified
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
     val border = when {
         isError -> AppRed
-        focused -> Navy
-        else -> Line
+        focused -> if (focusedBorderColor == Color.Unspecified) Navy else focusedBorderColor
+        else -> if (idleBorderColor == Color.Unspecified) Line else idleBorderColor
     }
     val showFrame = !plainWhenIdle || focused
     val boxAlignment = when (textStyle.textAlign) {
