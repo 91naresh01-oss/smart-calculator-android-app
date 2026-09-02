@@ -288,28 +288,17 @@ fun ReferenceCard(modifier: Modifier = Modifier, content: @Composable () -> Unit
     val shape = RoundedCornerShape(14.dp)
     val isDark = IsDarkMode
     Card(
-        modifier = modifier.fillMaxWidth().then(
-            if (!isDark) {
-                Modifier.shadow(
-                    elevation = 4.dp,
-                    shape = shape,
-                    spotColor = Color(0x18000000),
-                    ambientColor = Color(0x0C000000)
-                )
-            } else {
-                Modifier.shadow(
-                    elevation = 2.dp,
-                    shape = shape,
-                    spotColor = Color(0x33000000),
-                    ambientColor = Color(0x1A000000)
-                )
-            }
+        modifier = modifier.fillMaxWidth().shadow(
+            elevation = if (!isDark) 6.dp else 4.dp,
+            shape = shape,
+            spotColor = if (!isDark) Color(0x35000000) else Color(0x75000000),
+            ambientColor = if (!isDark) Color(0x18000000) else Color(0x35000000)
         ),
         shape = shape,
         colors = CardDefaults.cardColors(
-            containerColor = if (isDark) Color(0xFF1E293B).copy(alpha = 0.88f) else Color(0xFFFFFFFF).copy(alpha = 0.94f)
+            containerColor = if (isDark) Color(0xFF1E293B).copy(alpha = 0.92f) else Color(0xFFFFFFFF).copy(alpha = 0.96f)
         ),
-        border = BorderStroke(1.dp, Line.copy(alpha = if (isDark) 0.7f else 0.9f)),
+        border = BorderStroke(1.dp, if (isDark) Color(0xFF334155).copy(alpha = 0.8f) else Color(0xFFCBD5E1).copy(alpha = 0.85f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) { content() }
 }
@@ -322,17 +311,12 @@ fun Modifier.modernBoxSurface(
     borderColor: Color = Line
 ): Modifier {
     val isDark = IsDarkMode
-    return this
-        .then(
-            if (!isDark) {
-                Modifier.shadow(
-                    elevation = elevation,
-                    shape = shape,
-                    spotColor = Color(0x18000000),
-                    ambientColor = Color(0x0A000000)
-                )
-            } else Modifier
-        )
+    return this.shadow(
+        elevation = elevation,
+        shape = shape,
+        spotColor = if (!isDark) Color(0x22000000) else Color(0x50000000),
+        ambientColor = if (!isDark) Color(0x0E000000) else Color(0x25000000)
+    )
         .clip(shape)
         .background(if (isDark) SoftField else PageWhite)
         .border(1.dp, borderColor, shape)

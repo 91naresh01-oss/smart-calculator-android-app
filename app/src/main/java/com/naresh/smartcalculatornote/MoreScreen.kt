@@ -146,26 +146,17 @@ private fun MoreToolTile(tool: ToolInfo, modifier: Modifier, onClick: () -> Unit
     val isDark = IsDarkMode
     Card(
         onClick = onClick,
-        modifier = modifier.height(78.dp).then(
-            if (!isDark) {
-                Modifier.shadow(
-                    elevation = 4.dp,
-                    shape = RoundedCornerShape(13.dp),
-                    spotColor = Color(0x20000000),
-                    ambientColor = Color(0x10000000)
-                )
-            } else {
-                Modifier.shadow(
-                    elevation = 1.dp,
-                    shape = RoundedCornerShape(13.dp),
-                    spotColor = Color(0x33000000),
-                    ambientColor = Color(0x18000000)
-                )
-            }
+        modifier = modifier.height(78.dp).shadow(
+            elevation = if (!isDark) 5.dp else 4.dp,
+            shape = RoundedCornerShape(13.dp),
+            spotColor = if (!isDark) Color(0x30000000) else Color(0x70000000),
+            ambientColor = if (!isDark) Color(0x15000000) else Color(0x35000000)
         ),
         shape = RoundedCornerShape(13.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, Line),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isDark) Color(0xFF1E293B).copy(alpha = 0.92f) else Color(0xFFFFFFFF).copy(alpha = 0.96f)
+        ),
+        border = BorderStroke(1.dp, if (isDark) Color(0xFF334155).copy(alpha = 0.8f) else Color(0xFFCBD5E1).copy(alpha = 0.85f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(

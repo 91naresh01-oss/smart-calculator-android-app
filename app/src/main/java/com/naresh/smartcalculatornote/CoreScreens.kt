@@ -37,6 +37,7 @@ import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.CurrencyRupee
+import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.Percent
 import androidx.compose.material.icons.filled.Payments
 import androidx.compose.material.icons.filled.Refresh
@@ -305,6 +306,12 @@ fun CashScreen(state: AppState, viewModel: CalculatorViewModel) {
                 colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                 modifier = Modifier
                     .fillMaxWidth()
+                    .shadow(
+                        elevation = if (!isDark) 6.dp else 5.dp,
+                        shape = RoundedCornerShape(16.dp),
+                        spotColor = if (!isDark) Color(0x35000000) else Color(0x80000000),
+                        ambientColor = if (!isDark) Color(0x18000000) else Color(0x40000000)
+                    )
                     .clip(RoundedCornerShape(16.dp))
                     .background(cashCardGradient)
             ) {
@@ -596,6 +603,7 @@ fun FourValueScreen(state: AppState, viewModel: CalculatorViewModel) {
         val result = when (mode) {
             FourValueMode.EMI -> CalculationEngine.smartEmi(raw, unit(2))
             FourValueMode.PROFIT -> CalculationEngine.smartProfit(raw)
+            FourValueMode.GOLD -> CalculationEngine.smartGold(raw, units)
             FourValueMode.INTEREST -> CalculationEngine.smartInterest(
                 raw,
                 state.toolInputs["four-interest-type"] ?: "simple",
@@ -770,6 +778,7 @@ private fun FourValueModeSelector(selected: FourValueMode, financeSelected: Bool
                         FourValueMode.PERCENT -> Icons.Default.Percent
                         FourValueMode.EMI -> Icons.Default.AccountBalance
                         FourValueMode.PROFIT -> Icons.AutoMirrored.Filled.TrendingUp
+                        FourValueMode.GOLD -> Icons.Default.Diamond
                         FourValueMode.INTEREST -> Icons.Default.Savings
                         FourValueMode.GENERAL -> Icons.Default.Tune
                     }
@@ -779,6 +788,7 @@ private fun FourValueModeSelector(selected: FourValueMode, financeSelected: Bool
                         FourValueMode.PERCENT -> if (isDark) Color(0xFF60A5FA) else Color(0xFF2C71DE)
                         FourValueMode.EMI -> if (isDark) Color(0xFF2DD4BF) else Color(0xFF008A75)
                         FourValueMode.PROFIT -> if (isDark) Color(0xFF34D399) else Color(0xFF18A673)
+                        FourValueMode.GOLD -> if (isDark) Color(0xFFFBBF24) else Color(0xFFD97706)
                         FourValueMode.INTEREST -> if (isDark) Color(0xFF38BDF8) else Color(0xFF008B9A)
                         FourValueMode.GENERAL -> if (isDark) Color(0xFFA78BFA) else Color(0xFF8A5CC8)
                     }
@@ -788,6 +798,7 @@ private fun FourValueModeSelector(selected: FourValueMode, financeSelected: Bool
                         FourValueMode.MARKS -> 90.dp
                         FourValueMode.PERCENT -> 95.dp
                         FourValueMode.EMI, FourValueMode.INTEREST -> 89.dp
+                        FourValueMode.GOLD -> 112.dp
                         FourValueMode.GENERAL -> 96.dp
                     }
                     val selectedBrush = if (isDark) {
@@ -831,28 +842,17 @@ private fun FourValueSurface(modifier: Modifier = Modifier, content: @Composable
     val shape = RoundedCornerShape(16.dp)
     val isDark = IsDarkMode
     Card(
-        modifier = modifier.padding(start = 2.dp, end = 6.dp).fillMaxWidth().then(
-            if (!isDark) {
-                Modifier.shadow(
-                    elevation = 4.dp,
-                    shape = shape,
-                    spotColor = Color(0x14000000),
-                    ambientColor = Color(0x0A000000)
-                )
-            } else {
-                Modifier.shadow(
-                    elevation = 2.dp,
-                    shape = shape,
-                    spotColor = Color(0x33000000),
-                    ambientColor = Color(0x18000000)
-                )
-            }
+        modifier = modifier.padding(start = 2.dp, end = 6.dp).fillMaxWidth().shadow(
+            elevation = if (!isDark) 6.dp else 4.dp,
+            shape = shape,
+            spotColor = if (!isDark) Color(0x35000000) else Color(0x75000000),
+            ambientColor = if (!isDark) Color(0x18000000) else Color(0x35000000)
         ),
         shape = shape,
         colors = CardDefaults.cardColors(
-            containerColor = if (isDark) Color(0xFF1E293B).copy(alpha = 0.88f) else Color(0xFFFFFFFF).copy(alpha = 0.94f)
+            containerColor = if (isDark) Color(0xFF1E293B).copy(alpha = 0.92f) else Color(0xFFFFFFFF).copy(alpha = 0.96f)
         ),
-        border = BorderStroke(1.dp, Line.copy(alpha = if (isDark) 0.7f else 0.9f)),
+        border = BorderStroke(1.dp, if (isDark) Color(0xFF334155).copy(alpha = 0.8f) else Color(0xFFCBD5E1).copy(alpha = 0.85f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) { content() }
 }

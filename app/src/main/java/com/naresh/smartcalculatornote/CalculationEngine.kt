@@ -104,6 +104,10 @@ enum class FourValueMode(
         "profit", "Profit", listOf("COST PRICE", "SELLING PRICE", "PROFIT / LOSS", "MARGIN"),
         listOf("", "", "", ""), listOf("₹", "₹", "₹", "%")
     ),
+    GOLD(
+        "gold", "Gold / Silver", listOf("RATE", "WEIGHT", "MAKING CHARGE", "FINAL PRICE"),
+        listOf("", "", "0", ""), listOf("₹/10g", "g", "%", "₹")
+    ),
     INTEREST(
         "interest", "₹ Interest", listOf("PRINCIPAL", "ANNUAL RATE", "TIME", "INTEREST", "TOTAL AMOUNT"),
         listOf("", "", "", "", ""), listOf("₹", "%", "years", "₹", "₹")
@@ -122,6 +126,7 @@ enum class FourValueMode(
             PERCENT -> "Percent of Amount"
             EMI -> "Smart Loan Calculator"
             PROFIT -> "Profit and Margin"
+            GOLD -> "Gold & Silver Jewellery"
             INTEREST -> "Simple Interest"
             GENERAL -> "Same Ratio"
         }
@@ -216,6 +221,7 @@ object CalculationEngine {
 
     private val smartUnits = listOf(
         SmartUnit("₹", "₹", "fixed"), SmartUnit("%", "%", "fixed"), SmartUnit("marks", "Marks", "fixed"),
+        SmartUnit("₹/10g", "₹ / 10g", "fixed"), SmartUnit("₹/1g", "₹ / 1g", "fixed"),
         SmartUnit("", "", "fixed"), SmartUnit("months", "Months", "time"), SmartUnit("years", "Years", "time"),
         SmartUnit("mg", "mg", "mass", 0.001), SmartUnit("g", "g", "mass", 1.0),
         SmartUnit("tola", "Traditional Tola", "mass", 11.6638), SmartUnit("kg", "kg", "mass", 1000.0),
@@ -352,6 +358,12 @@ object CalculationEngine {
         FourValueMode.PERCENT -> if (index == 1 || index == 3) listOf("%") else listOf("")
         FourValueMode.EMI -> if (index == 2) listOf("months", "years") else listOf("₹", "%", "months", "₹")[index].let(::listOf)
         FourValueMode.PROFIT -> listOf("₹", "₹", "₹", "%")[index].let(::listOf)
+        FourValueMode.GOLD -> when (index) {
+            0 -> listOf("₹/10g", "₹/1g")
+            1 -> listOf("g", "mg", "tola")
+            2 -> listOf("%", "₹")
+            else -> listOf("₹")
+        }
         FourValueMode.INTEREST -> listOf("₹", "%", "years", "₹", "₹")[index].let(::listOf)
         FourValueMode.GENERAL -> listOf("")
     }
@@ -619,6 +631,108 @@ object CalculationEngine {
         if (!finite(cost, selling) || cost < 0 || selling <= 0) return fail("Enter valid cost and selling prices.")
         val value = selling - cost
         return ok(value, listOf("Margin ${format(value / selling * 100)}%", if (value >= 0) "Profit" else "Loss"))
+    }
+
+    fun smartGold(raw: List<String>, units: List<String>): CalculationResult {
+        if (raw.size != 4 || units.size != 4) return fail("Enter four values.")
+        val (parsed, parseError) = parseValues(raw)
+        if (parseError != null) return fail(parseError)
+        val missing = parsed.indices.filter { parsed[it] == null }
+        if (missing.size != 1) return fail("Leave exactly 1 box empty.")
+        val index = missing.single()
+
+        val rateUnit = units[0]
+        val weightUnit = units[1]
+        val makingUnit = units[2]
+
+        fun ratePerGram(rate: Double): Double = if (rateUnit == "₹/10g") rate / 10.0 else rate
+        fun rateFromPerGram(rPerGram: Double): Double = if (rateUnit == "₹/10g") rPerGram * 10.0 else rPerGram
+
+        fun weightInGrams(w: Double): Double = when (weightUnit) {
+            "mg" -> w / 1000.0
+            "tola" -> w * 11.6638
+            else -> w
+        }
+        fun weightFromGrams(wGrams: Double): Double = when (weightUnit) {
+            "mg" -> wGrams * 1000.0
+            "tola" -> wGrams / 11.6638
+            else -> wGrams
+        }
+
+        val rate = parsed[0]
+        val weight = parsed[1]
+        val making = parsed[2]
+        val finalPrice = parsed[3]
+
+        val answer = when (index) {
+            0 -> {
+                val w = weight ?: return fail("Enter weight, making and final price.")
+                val m = making ?: return fail("Enter weight, making and final price.")
+                val f = finalPrice ?: return fail("Enter weight, making and final price.")
+                val wGrams = weightInGrams(w)
+                if (wGrams <= 0.0) return fail("Weight must be greater than zero.")
+                val baseGold = if (makingUnit == "%") f / (1.0 + (m / 100.0)) else f - m
+                if (baseGold <= 0.0) return fail("Final price must be greater than making charges.")
+                val rPerGram = baseGold / wGrams
+                rateFromPerGram(rPerGram)
+            }
+            1 -> {
+                val r = rate ?: return fail("Enter gold rate, making and final budget.")
+                val m = making ?: return fail("Enter gold rate, making and final budget.")
+                val f = finalPrice ?: return fail("Enter gold rate, making and final budget.")
+                val rPerGram = ratePerGram(r)
+                if (rPerGram <= 0.0) return fail("Rate must be greater than zero.")
+                val baseGold = if (makingUnit == "%") f / (1.0 + (m / 100.0)) else f - m
+                if (baseGold <= 0.0) return fail("Final price must be greater than making charges.")
+                val wGrams = baseGold / rPerGram
+                weightFromGrams(wGrams)
+            }
+            2 -> {
+                val r = rate ?: return fail("Enter gold rate, weight and final price.")
+                val w = weight ?: return fail("Enter gold rate, weight and final price.")
+                val f = finalPrice ?: return fail("Enter gold rate, weight and final price.")
+                val rPerGram = ratePerGram(r)
+                val wGrams = weightInGrams(w)
+                val baseGold = rPerGram * wGrams
+                val makingDiff = f - baseGold
+                if (makingUnit == "%") {
+                    if (baseGold <= 0.0) return fail("Base price must be greater than zero.")
+                    (makingDiff / baseGold) * 100.0
+                } else {
+                    makingDiff
+                }
+            }
+            else -> {
+                val r = rate ?: return fail("Enter gold rate, weight and making charge.")
+                val w = weight ?: return fail("Enter gold rate, weight and making charge.")
+                val m = making ?: return fail("Enter gold rate, weight and making charge.")
+                val rPerGram = ratePerGram(r)
+                val wGrams = weightInGrams(w)
+                val baseGold = rPerGram * wGrams
+                val makingAmount = if (makingUnit == "%") baseGold * (m / 100.0) else m
+                baseGold + makingAmount
+            }
+        }
+
+        if (!answer.isFinite() || answer < 0.0) return fail("Unable to calculate a valid gold value.")
+
+        val completed = parsed.toMutableList().also { it[index] = answer }
+        val rFinal = completed[0] ?: 0.0
+        val wFinal = completed[1] ?: 0.0
+        val mFinal = completed[2] ?: 0.0
+        val fFinal = completed[3] ?: 0.0
+
+        val baseGold = ratePerGram(rFinal) * weightInGrams(wFinal)
+        val makingAmount = if (makingUnit == "%") baseGold * (mFinal / 100.0) else mFinal
+        val gstAmount = fFinal * 0.03
+
+        val details = listOf(
+            "Gold Base: ₹ ${format(baseGold)}",
+            "Making (${if (makingUnit == "%") "${format(mFinal)}%" else "₹ ${format(mFinal)}"}): ₹ ${format(makingAmount)}",
+            "Final Price: ₹ ${format(fFinal)}",
+            "3% GST Ref: ₹ ${format(gstAmount)} (Total: ₹ ${format(fFinal + gstAmount)})"
+        )
+        return ok(answer, details, index, completed)
     }
 
     fun smartInterest(raw: List<String>, type: String, frequency: Int, timeUnit: String): CalculationResult {
