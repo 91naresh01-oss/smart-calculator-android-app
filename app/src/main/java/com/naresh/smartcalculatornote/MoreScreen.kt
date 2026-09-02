@@ -32,6 +32,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -142,16 +143,28 @@ fun MoreScreen(state: AppState, viewModel: CalculatorViewModel, onShare: () -> U
 
 @Composable
 private fun MoreToolTile(tool: ToolInfo, modifier: Modifier, onClick: () -> Unit) {
+    val isDark = IsDarkMode
     Card(
         onClick = onClick,
-        modifier = modifier.height(78.dp).shadow(
-            elevation = 5.dp,
-            shape = RoundedCornerShape(13.dp),
-            spotColor = Color(0x26000000),
-            ambientColor = Color(0x12000000)
+        modifier = modifier.height(78.dp).then(
+            if (!isDark) {
+                Modifier.shadow(
+                    elevation = 4.dp,
+                    shape = RoundedCornerShape(13.dp),
+                    spotColor = Color(0x20000000),
+                    ambientColor = Color(0x10000000)
+                )
+            } else {
+                Modifier.shadow(
+                    elevation = 1.dp,
+                    shape = RoundedCornerShape(13.dp),
+                    spotColor = Color(0x33000000),
+                    ambientColor = Color(0x18000000)
+                )
+            }
         ),
         shape = RoundedCornerShape(13.dp),
-        colors = CardDefaults.cardColors(containerColor = PageWhite),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, Line),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -163,7 +176,7 @@ private fun MoreToolTile(tool: ToolInfo, modifier: Modifier, onClick: () -> Unit
             Text(
                 tool.emoji,
                 fontSize = if (tool.emoji == "%") 23.sp else 25.sp,
-                fontWeight = if (tool.emoji == "%") FontWeight.Bold else FontWeight.Normal,
+                fontWeight = if (tool.emoji == "%") FontWeight.Black else FontWeight.Normal,
                 color = if (tool.emoji == "%") Navy else Color.Unspecified,
                 textAlign = TextAlign.Center
             )
@@ -183,10 +196,10 @@ private fun MoreToolHeader(title: String, onBack: () -> Unit) {
         Text(title, color = DeepNavy, fontSize = 20.sp, fontWeight = FontWeight.Black)
         OutlinedButton(
             onClick = onBack,
-            modifier = Modifier.height(34.dp),
-            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.height(36.dp),
+            shape = RoundedCornerShape(11.dp),
             border = BorderStroke(1.dp, Line),
-            colors = ButtonDefaults.outlinedButtonColors(containerColor = PageWhite, contentColor = Navy)
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = SoftField, contentColor = Navy)
         ) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, modifier = Modifier.size(15.dp))
             Text("All tools", fontWeight = FontWeight.Bold, fontSize = 12.sp)
@@ -324,6 +337,7 @@ private fun ConverterPanel(
     onToChange: (String) -> Unit,
     onSwap: () -> Unit
 ) {
+    val isDark = IsDarkMode
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
         ReferenceCard {
             Column(Modifier.padding(13.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -333,20 +347,20 @@ private fun ConverterPanel(
                 }
                 Button(
                     onClick = onSwap,
-                    modifier = Modifier.size(35.dp).align(Alignment.CenterHorizontally),
+                    modifier = Modifier.size(36.dp).align(Alignment.CenterHorizontally),
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Navy)
-                ) { Icon(Icons.Default.SwapVert, contentDescription = "Swap", modifier = Modifier.size(21.dp)) }
+                    colors = ButtonDefaults.buttonColors(containerColor = Navy, contentColor = Color.White)
+                ) { Icon(Icons.Default.SwapVert, contentDescription = "Swap", tint = Color.White, modifier = Modifier.size(21.dp)) }
                 Card(
-                    modifier = Modifier.fillMaxWidth().shadow(3.dp, RoundedCornerShape(13.dp), spotColor = Color(0x22000000)),
-                    shape = RoundedCornerShape(13.dp),
-                    colors = CardDefaults.cardColors(containerColor = PageWhite),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = SoftField),
                     border = BorderStroke(1.dp, Line),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
                     Row(
-                        Modifier.fillMaxWidth().padding(4.dp),
+                        Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
@@ -393,7 +407,7 @@ private fun ConverterUnitPicker(selected: String, options: List<String>, modifie
     androidx.compose.foundation.layout.Box(modifier) {
         OutlinedButton(
             onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth().height(48.dp).modernBoxSurface(RoundedCornerShape(10.dp), 2.dp),
+            modifier = Modifier.fillMaxWidth().height(48.dp).modernBoxSurface(RoundedCornerShape(10.dp), 1.5.dp),
             shape = RoundedCornerShape(10.dp),
             border = BorderStroke(0.dp, Color.Transparent),
             colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent, contentColor = DeepNavy),
@@ -536,8 +550,11 @@ private fun DatePickerField(label: String, value: String, onChange: (String) -> 
                 selected.dayOfMonth
             ).show()
         },
-        modifier = Modifier.fillMaxWidth().height(42.dp)
-    ) { Text("$label: ${value.ifBlank { "Select date" }}") }
+        modifier = Modifier.fillMaxWidth().height(44.dp),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, Line),
+        colors = ButtonDefaults.outlinedButtonColors(containerColor = SoftField, contentColor = DeepNavy)
+    ) { Text("$label: ${value.ifBlank { "Select date" }}", fontWeight = FontWeight.SemiBold) }
 }
 
 @Composable
@@ -576,9 +593,14 @@ private fun GstTool(values: Map<String, String>, onNumericChange: (String, Strin
 private fun GstModeButton(text: String, selected: Boolean, modifier: Modifier, action: () -> Unit) {
     OutlinedButton(
         onClick = action,
-        modifier = modifier.height(36.dp),
-        colors = ButtonDefaults.outlinedButtonColors(containerColor = if (selected) Navy else PageWhite, contentColor = if (selected) Color.White else DeepNavy)
-    ) { Text(text, fontWeight = FontWeight.Bold, fontSize = 12.sp) }
+        modifier = modifier.height(38.dp),
+        shape = RoundedCornerShape(10.dp),
+        border = BorderStroke(1.dp, if (selected) Navy else Line),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = if (selected) Navy else SoftField,
+            contentColor = if (selected) Color.White else DeepNavy
+        )
+    ) { Text(text, color = if (selected) Color.White else DeepNavy, fontWeight = FontWeight.Bold, fontSize = 12.sp) }
 }
 
 @Composable
@@ -612,10 +634,14 @@ private fun CurrencyTool(values: Map<String, String>, onNumericChange: (String, 
                 onChange("currencyTo", from)
                 onNumericChange("currencyRate", CalculationEngine.raw(if (rate.number() == 0.0) 0.0 else 1.0 / rate.number()))
             },
-            modifier = Modifier.fillMaxWidth().height(40.dp)
+            modifier = Modifier.fillMaxWidth().height(42.dp),
+            shape = RoundedCornerShape(10.dp),
+            border = BorderStroke(1.dp, Line),
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = SoftField, contentColor = Navy)
         ) {
             Icon(Icons.Default.SwapVert, contentDescription = null, modifier = Modifier.size(18.dp))
-            Text("Swap")
+            Spacer(Modifier.widthIn(min = 4.dp))
+            Text("Swap", fontWeight = FontWeight.Bold)
         }
         Picker("To: $to", currencies, to) { onChange("currencyTo", it) }
         Input(rate, { onNumericChange("currencyRate", it) }, "Rate: 1 $from = ? $to")
@@ -625,12 +651,12 @@ private fun CurrencyTool(values: Map<String, String>, onNumericChange: (String, 
 @Composable
 private fun AllUnitValues(title: String, sourceValue: Double, sourceUnit: String, rows: List<Pair<String, String>>) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(title.uppercase(), color = Muted, fontWeight = FontWeight.Black, fontSize = 12.sp, modifier = Modifier.padding(horizontal = 2.dp))
+        Text(title.uppercase(), color = Muted, fontWeight = FontWeight.Black, fontSize = 11.sp, letterSpacing = 0.5.sp, modifier = Modifier.padding(horizontal = 2.dp))
         ReferenceCard {
             Column(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
                 rows.forEachIndexed { index, (unit, result) ->
                     Row(
-                        Modifier.fillMaxWidth().padding(vertical = 14.dp),
+                        Modifier.fillMaxWidth().padding(vertical = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -638,10 +664,10 @@ private fun AllUnitValues(title: String, sourceValue: Double, sourceUnit: String
                             "${CalculationEngine.format(sourceValue)} ${converterUnitSymbol(sourceUnit)} = $result ${converterUnitSymbol(unit)}",
                             color = DeepNavy,
                             fontWeight = FontWeight.SemiBold,
-                            fontSize = 14.sp,
+                            fontSize = 13.sp,
                             modifier = Modifier.weight(1f)
                         )
-                        Text(unit, color = Muted, fontSize = 13.sp, textAlign = TextAlign.End, modifier = Modifier.weight(.85f))
+                        Text(unit, color = Muted, fontSize = 12.sp, textAlign = TextAlign.End, modifier = Modifier.weight(.85f))
                     }
                     if (index != rows.lastIndex) androidx.compose.material3.HorizontalDivider(color = Line)
                 }
@@ -661,28 +687,35 @@ private fun ToolCard(title: String, result: String, error: String? = null, detai
 @Composable
 private fun HistoryTool(history: List<HistoryEntry>, clear: () -> Unit, share: () -> Unit) {
     ReferenceCard {
-        Column(Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Saved History", fontSize = 20.sp, fontWeight = FontWeight.Black, color = DeepNavy)
-                TextButton(onClick = clear) { Text("Clear") }
+        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("Saved History", fontSize = 18.sp, fontWeight = FontWeight.Black, color = DeepNavy)
+                TextButton(onClick = clear) { Text("Clear", color = TagRedText, fontWeight = FontWeight.Bold) }
             }
             if (history.isEmpty()) {
-                Text("No saved results yet.", color = Muted)
+                Text("No saved results yet.", color = Muted, modifier = Modifier.padding(vertical = 8.dp))
             } else {
                 history.take(100).forEach { entry ->
-                    Row(Modifier.fillMaxWidth().padding(vertical = 5.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Row(Modifier.fillMaxWidth().padding(vertical = 5.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
-                            Text(entry.label, color = DeepNavy)
-                            Text(DateFormat.getDateTimeInstance().format(Date(entry.createdAt)), fontSize = 12.sp, color = Muted)
+                            Text(entry.label, color = DeepNavy, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                            Text(DateFormat.getDateTimeInstance().format(Date(entry.createdAt)), fontSize = 11.sp, color = Muted)
                         }
-                        Text(entry.value, color = DeepNavy, fontWeight = FontWeight.Black)
+                        Text(entry.value, color = Navy, fontWeight = FontWeight.Black, fontSize = 14.sp)
                     }
                 }
             }
-            Button(onClick = share, modifier = Modifier.fillMaxWidth().height(48.dp), colors = ButtonDefaults.buttonColors(containerColor = Navy)) {
-                Icon(Icons.Default.Share, null)
-                Text("Share summary")
+            Button(
+                onClick = share,
+                modifier = Modifier.fillMaxWidth().height(46.dp),
+                shape = RoundedCornerShape(11.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Navy, contentColor = Color.White)
+            ) {
+                Icon(Icons.Default.Share, null, tint = Color.White, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.widthIn(min = 6.dp))
+                Text("Share summary", color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
     }
 }
+

@@ -126,8 +126,8 @@ fun CompactTextField(
                         if (value.isBlank()) {
                             if (label != null) {
                                 ProvideTextStyle(LocalTextStyle.current.copy(color = Muted)) { label() }
-                            } else {
-                                placeholder?.invoke()
+                            } else if (placeholder != null) {
+                                ProvideTextStyle(LocalTextStyle.current.copy(color = Muted)) { placeholder() }
                             }
                         }
                         innerTextField()

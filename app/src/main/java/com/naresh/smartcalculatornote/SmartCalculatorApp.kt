@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,8 +41,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -66,28 +69,71 @@ val SoftField: Color @Composable get() = MaterialTheme.colorScheme.surfaceContai
 val Line: Color @Composable get() = MaterialTheme.colorScheme.outlineVariant
 val Muted: Color @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
 
+val IsDarkMode: Boolean @Composable get() = MaterialTheme.colorScheme.background.luminance() < 0.5f
+
+// Adaptive semantic colors for tags, status indicators and adjustment cards
+val TagGreenBg: Color @Composable get() = if (IsDarkMode) Color(0xFF064E3B).copy(alpha = 0.65f) else Color(0xFFECFDF5)
+val TagGreenBorder: Color @Composable get() = if (IsDarkMode) Color(0xFF059669).copy(alpha = 0.6f) else Color(0xFFA7F3D0)
+val TagGreenText: Color @Composable get() = if (IsDarkMode) Color(0xFF34D399) else Color(0xFF047857)
+
+val TagRedBg: Color @Composable get() = if (IsDarkMode) Color(0xFF7F1D1D).copy(alpha = 0.55f) else Color(0xFFFEF2F2)
+val TagRedBorder: Color @Composable get() = if (IsDarkMode) Color(0xFFDC2626).copy(alpha = 0.5f) else Color(0xFFFECACA)
+val TagRedText: Color @Composable get() = if (IsDarkMode) Color(0xFFF87171) else Color(0xFFB91C1C)
+
+val TagAmberBg: Color @Composable get() = if (IsDarkMode) Color(0xFF78350F).copy(alpha = 0.55f) else Color(0xFFFFFBEB)
+val TagAmberBorder: Color @Composable get() = if (IsDarkMode) Color(0xFFD97706).copy(alpha = 0.5f) else Color(0xFFFDE68A)
+val TagAmberText: Color @Composable get() = if (IsDarkMode) Color(0xFFFBBF24) else Color(0xFFB45309)
+
+val TagBlueBg: Color @Composable get() = if (IsDarkMode) Color(0xFF1E3A8A).copy(alpha = 0.55f) else Color(0xFFEFF6FF)
+val TagBlueBorder: Color @Composable get() = if (IsDarkMode) Color(0xFF2563EB).copy(alpha = 0.5f) else Color(0xFFBFDBFE)
+val TagBlueText: Color @Composable get() = if (IsDarkMode) Color(0xFF60A5FA) else Color(0xFF1D4ED8)
+
+val TagPurpleBg: Color @Composable get() = if (IsDarkMode) Color(0xFF581C87).copy(alpha = 0.55f) else Color(0xFFFAF5FF)
+val TagPurpleBorder: Color @Composable get() = if (IsDarkMode) Color(0xFF7C3AED).copy(alpha = 0.5f) else Color(0xFFE9D5FF)
+val TagPurpleText: Color @Composable get() = if (IsDarkMode) Color(0xFFA78BFA) else Color(0xFF6D28D9)
+
 private val LightScheme = androidx.compose.material3.lightColorScheme(
-    primary = Color(0xFF1C735E),
-    secondary = Color(0xFFB98218),
-    background = Color(0xFFF7FAF9),
+    primary = Color(0xFF0F766E), // Deep Teal
+    secondary = Color(0xFFD97706), // Warm Amber
+    background = Color(0xFFF6F8FA),
     surface = Color(0xFFFFFFFF),
-    surfaceContainerLow = Color(0xFFFFFFFF),
-    onSurface = Color(0xFF111827),
-    onSurfaceVariant = Color(0xFF6B7280),
-    outlineVariant = Color(0xFFD7DEDB),
-    error = Color(0xFFB3261E)
+    surfaceContainerLow = Color(0xFFF8FAFC),
+    onSurface = Color(0xFF0F172A),
+    onSurfaceVariant = Color(0xFF64748B),
+    outlineVariant = Color(0xFFE2E8F0),
+    error = Color(0xFFDC2626)
 )
 private val DarkScheme = androidx.compose.material3.darkColorScheme(
-    primary = Color(0xFF9EB8FF),
-    secondary = Color(0xFF67E0D4),
-    background = Color(0xFF101827),
-    surface = Color(0xFF172338),
-    onSurface = Color(0xFFF5F7FF),
-    onSurfaceVariant = Color(0xFFBDCAE1),
-    surfaceContainerLow = Color(0xFF1D2A40),
-    outlineVariant = Color(0xFF33445E),
-    error = Color(0xFFFFB4AB)
+    primary = Color(0xFF2DD4BF), // Radiant Cyan-Teal
+    secondary = Color(0xFFFBBF24), // Radiant Amber
+    background = Color(0xFF0F172A), // Slate Navy 900
+    surface = Color(0xFF1E293B), // Slate Surface 800
+    surfaceContainerLow = Color(0xFF0D1525), // Inset Field Surface
+    onSurface = Color(0xFFF8FAFC), // Crisp Slate 50
+    onSurfaceVariant = Color(0xFF94A3B8), // Slate 400
+    outlineVariant = Color(0xFF334155), // Slate Border 700
+    error = Color(0xFFF87171)
 )
+
+@Composable
+fun AppGlossyBackgroundBrush(): Brush {
+    val isDark = IsDarkMode
+    return if (isDark) {
+        Brush.verticalGradient(
+            0.0f to Color(0xFF0B2545), // Top: Rich glowing sapphire ambient
+            0.35f to Color(0xFF0C192C), // Upper mid: Slate midnight navy
+            0.75f to Color(0xFF070F1B), // Lower mid: Deep glossy obsidian
+            1.0f to Color(0xFF040810)   // Bottom: Rich jet foundation
+        )
+    } else {
+        Brush.verticalGradient(
+            0.0f to Color(0xFFE0F2FE), // Top: Crisp sky-blue gloss tint
+            0.25f to Color(0xFFF0FDF4), // Upper mid: Light emerald fresh sheen
+            0.65f to Color(0xFFF8FAFC), // Lower mid: Pristine pearl porcelain
+            1.0f to Color(0xFFE2E8F0)  // Bottom: Soft slate contoured base
+        )
+    }
+}
 
 @Composable
 fun SmartCalculatorApp(viewModel: CalculatorViewModel, openNoteId: String? = null) {
@@ -112,13 +158,15 @@ fun SmartCalculatorApp(viewModel: CalculatorViewModel, openNoteId: String? = nul
     }
     MaterialTheme(colorScheme = if (dark) DarkScheme else LightScheme) {
         CompositionLocalProvider(LocalDensity provides Density(systemDensity.density, systemDensity.fontScale * state.fontScale)) {
-          Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-            ProvideTextStyle(LocalTextStyle.current.copy(fontFamily = AppFontFamily)) {
+          Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(AppGlossyBackgroundBrush())
+            ) {
+              ProvideTextStyle(LocalTextStyle.current.copy(fontFamily = AppFontFamily)) {
                 ResponsiveReferenceLayout {
                     Column(Modifier.fillMaxSize()) {
-                        // Apply safe drawing padding only to the content area if needed, 
-                        // but let's manage it more precisely to avoid double padding if the layout already handles it.
-                        // However, standardizing on a top-level padding for the entire screen content is safer.
                         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
                             AppNavigation(state.activeTab, viewModel::select)
                             Box(Modifier.fillMaxWidth().weight(1f)) {
@@ -142,6 +190,7 @@ fun SmartCalculatorApp(viewModel: CalculatorViewModel, openNoteId: String? = nul
                         }
                     }
                 }
+              }
             }
           }
         }
@@ -163,17 +212,20 @@ private fun AppNavigation(selected: MainTab, select: (MainTab) -> Unit) {
         MainTab.MORE
     )
     Row(
-        modifier = Modifier.fillMaxWidth().height(54.dp).background(MaterialTheme.colorScheme.surface),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .background(if (IsDarkMode) Color(0xFF0F172A).copy(alpha = 0.90f) else Color(0xFFFFFFFF).copy(alpha = 0.92f)),
         verticalAlignment = Alignment.CenterVertically
     ) {
         navigationOrder.forEach { tab ->
             val active = selected == tab
             Box(
-                modifier = Modifier.weight(1f).height(54.dp)
+                modifier = Modifier.weight(1f).height(56.dp)
                     .pointerInput(tab) { detectTapGestures(onTap = { select(tab) }) },
             ) {
                 Column(
-                    modifier = Modifier.fillMaxSize().padding(vertical = 5.dp),
+                    modifier = Modifier.fillMaxSize().padding(vertical = 4.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
@@ -184,65 +236,80 @@ private fun AppNavigation(selected: MainTab, select: (MainTab) -> Unit) {
                     }
                     if (navVector != null) {
                         val navVectorColor = when (tab) {
-                            MainTab.ORIGINAL -> Color(0xFF7655B5)
-                            MainTab.MORE -> Color(0xFF008A75)
+                            MainTab.ORIGINAL -> if (IsDarkMode) Color(0xFFA78BFA) else Color(0xFF7C3AED)
+                            MainTab.MORE -> if (IsDarkMode) Color(0xFF2DD4BF) else Color(0xFF0D9488)
                             else -> Navy
                         }
                         Icon(
                             imageVector = navVector,
                             contentDescription = tab.label,
                             tint = navVectorColor,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     } else {
                         androidx.compose.foundation.Image(
                             painter = painterResource(navIcons.getValue(tab)),
                             contentDescription = tab.label,
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(20.dp),
                             contentScale = ContentScale.Fit
                         )
                     }
+                    Spacer(Modifier.height(2.dp))
                     Text(
                         tab.label,
                         fontSize = 10.sp,
                         fontWeight = if (active) FontWeight.Bold else FontWeight.SemiBold,
-                        color = if (active) Navy else DeepNavy,
+                        color = if (active) Navy else DeepNavy.copy(alpha = 0.8f),
                         textAlign = TextAlign.Center
                     )
                 }
                 if (active) {
                     Box(
                         modifier = Modifier.align(Alignment.BottomCenter)
-                            .fillMaxWidth(0.5f)
+                            .fillMaxWidth(0.52f)
                             .height(3.dp)
                             .shadow(
-                                elevation = 7.dp,
+                                elevation = 6.dp,
                                 shape = RoundedCornerShape(50),
-                                ambientColor = Color(0xFF72D8AC).copy(alpha = 0.8f),
-                                spotColor = Color(0xFF72D8AC).copy(alpha = 0.8f)
+                                ambientColor = Navy.copy(alpha = 0.7f),
+                                spotColor = Navy.copy(alpha = 0.7f)
                             )
-                            .background(Color(0xFF63C99B), RoundedCornerShape(50))
+                            .background(Navy, RoundedCornerShape(50))
                     )
                 }
             }
         }
     }
-    Box(Modifier.fillMaxWidth().height(1.dp).background(Line))
+    Box(Modifier.fillMaxWidth().height(1.dp).background(Line.copy(alpha = 0.7f)))
 }
 
 @Composable
 fun ReferenceCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val shape = RoundedCornerShape(14.dp)
+    val isDark = IsDarkMode
     Card(
-        modifier = modifier.fillMaxWidth().shadow(
-            elevation = 5.dp,
-            shape = shape,
-            spotColor = Color(0x26000000),
-            ambientColor = Color(0x12000000)
+        modifier = modifier.fillMaxWidth().then(
+            if (!isDark) {
+                Modifier.shadow(
+                    elevation = 4.dp,
+                    shape = shape,
+                    spotColor = Color(0x18000000),
+                    ambientColor = Color(0x0C000000)
+                )
+            } else {
+                Modifier.shadow(
+                    elevation = 2.dp,
+                    shape = shape,
+                    spotColor = Color(0x33000000),
+                    ambientColor = Color(0x1A000000)
+                )
+            }
         ),
         shape = shape,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, Line),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isDark) Color(0xFF1E293B).copy(alpha = 0.88f) else Color(0xFFFFFFFF).copy(alpha = 0.94f)
+        ),
+        border = BorderStroke(1.dp, Line.copy(alpha = if (isDark) 0.7f else 0.9f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) { content() }
 }
@@ -251,45 +318,52 @@ fun ReferenceCard(modifier: Modifier = Modifier, content: @Composable () -> Unit
 @Composable
 fun Modifier.modernBoxSurface(
     shape: Shape = RoundedCornerShape(10.dp),
-    elevation: Dp = 2.5.dp,
+    elevation: Dp = 2.dp,
     borderColor: Color = Line
-): Modifier = this
-    .shadow(
-        elevation = elevation,
-        shape = shape,
-        spotColor = Color(0x24000000),
-        ambientColor = Color(0x10000000)
-    )
-    .clip(shape)
-    .background(PageWhite)
-    .border(1.dp, borderColor, shape)
+): Modifier {
+    val isDark = IsDarkMode
+    return this
+        .then(
+            if (!isDark) {
+                Modifier.shadow(
+                    elevation = elevation,
+                    shape = shape,
+                    spotColor = Color(0x18000000),
+                    ambientColor = Color(0x0A000000)
+                )
+            } else Modifier
+        )
+        .clip(shape)
+        .background(if (isDark) SoftField else PageWhite)
+        .border(1.dp, borderColor, shape)
+}
 
 @Composable
-fun ResetButton(onClick: () -> Unit, modifier: Modifier = Modifier.height(40.dp)) {
-    val shape = RoundedCornerShape(12.dp)
+fun ResetButton(onClick: () -> Unit, modifier: Modifier = Modifier.height(36.dp)) {
+    val shape = RoundedCornerShape(10.dp)
     val gradientBrush = androidx.compose.ui.graphics.Brush.horizontalGradient(
-        colors = listOf(Color(0xFFEF5350), Color(0xFFC62828))
+        colors = listOf(Color(0xFFF87171), Color(0xFFE11D48))
     )
     Box(
         modifier = modifier
-            .shadow(4.dp, shape, spotColor = Color(0x40C62828), ambientColor = Color(0x18000000))
+            .shadow(3.dp, shape, spotColor = Color(0x30E11D48), ambientColor = Color(0x10000000))
             .clip(shape)
             .background(gradientBrush)
             .pointerInput(Unit) { detectTapGestures(onTap = { onClick() }) },
         contentAlignment = Alignment.Center
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp),
+            modifier = Modifier.padding(horizontal = 13.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Icon(
                 Icons.Default.Refresh,
                 contentDescription = null,
                 tint = Color.White,
-                modifier = Modifier.size(15.dp)
+                modifier = Modifier.size(14.dp)
             )
-            Text("RESET", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = .8.sp)
+            Text("RESET", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Black, letterSpacing = 0.6.sp)
         }
     }
 }

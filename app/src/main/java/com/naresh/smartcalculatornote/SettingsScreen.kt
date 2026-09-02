@@ -11,12 +11,14 @@ import android.provider.Settings
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -49,6 +51,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -58,6 +61,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -116,20 +120,20 @@ fun SettingsScreen(state: AppState, viewModel: CalculatorViewModel, onBack: () -
     val activeTag = AppCompatDelegate.getApplicationLocales().toLanguageTags().substringBefore(',')
     var languageOpen by remember { mutableStateOf(false) }
     val selectedLanguage = SupportedLanguages.firstOrNull { it.tag == activeTag } ?: SupportedLanguages.first()
-    Column(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.Top,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column(Modifier.weight(1f)) {
-                Text("Settings", color = DeepNavy, fontSize = 32.sp, fontWeight = FontWeight.Black)
-                Text("Customize your calculator experience", color = Muted, fontSize = 14.sp)
+                Text("Settings", color = DeepNavy, fontSize = 28.sp, fontWeight = FontWeight.Black)
+                Text("Customize your calculator experience", color = Muted, fontSize = 13.sp)
             }
             Surface(
                 onClick = onBack,
-                modifier = Modifier.size(42.dp).shadow(3.dp, RoundedCornerShape(13.dp), spotColor = Color(0x24000000)),
-                shape = RoundedCornerShape(13.dp),
+                modifier = Modifier.size(42.dp),
+                shape = RoundedCornerShape(12.dp),
                 color = PageWhite,
                 border = BorderStroke(1.dp, Line)
             ) {
@@ -145,12 +149,12 @@ fun SettingsScreen(state: AppState, viewModel: CalculatorViewModel, onBack: () -
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                SettingsIcon(Icons.Rounded.CheckCircle, SettingsGreen, Color(0xFFE4F7E4), 44.dp)
+                SettingsIcon(Icons.Rounded.CheckCircle, TagGreenText, TagGreenBg, 44.dp)
                 Column(Modifier.weight(1f)) {
-                    Text("All systems ready", color = DeepNavy, fontSize = 16.sp, fontWeight = FontWeight.Black)
+                    Text("All systems ready", color = DeepNavy, fontSize = 15.sp, fontWeight = FontWeight.Black)
                     Text("Your preferences are active", color = Muted, fontSize = 12.sp)
                 }
-                Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = SettingsGreen, modifier = Modifier.size(25.dp))
+                Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = TagGreenText, modifier = Modifier.size(24.dp))
             }
         }
 
@@ -158,25 +162,25 @@ fun SettingsScreen(state: AppState, viewModel: CalculatorViewModel, onBack: () -
             title = "App language",
             subtitle = "Works offline",
             icon = Icons.Rounded.Language,
-            iconTint = SettingsBlue,
-            iconBackground = Color(0xFFE6F0FF)
+            iconTint = TagBlueText,
+            iconBackground = TagBlueBg
         ) {
-                Surface(
-                    onClick = { languageOpen = true },
-                    modifier = Modifier.fillMaxWidth().height(52.dp).shadow(2.5.dp, RoundedCornerShape(11.dp), spotColor = Color(0x26000000)),
-                    shape = RoundedCornerShape(11.dp),
-                    color = PageWhite,
-                    border = BorderStroke(1.dp, Line)
+            Surface(
+                onClick = { languageOpen = true },
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(11.dp),
+                color = SoftField,
+                border = BorderStroke(1.dp, Line)
+            ) {
+                Row(
+                    Modifier.fillMaxSize().padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Row(
-                        Modifier.fillMaxSize().padding(horizontal = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Text(selectedLanguage.label, modifier = Modifier.weight(1f), color = DeepNavy, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
-                        Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = Muted, modifier = Modifier.size(18.dp))
-                    }
+                    Text(selectedLanguage.label, modifier = Modifier.weight(1f), color = DeepNavy, fontSize = 13.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+                    Icon(Icons.Rounded.ChevronRight, contentDescription = null, tint = Muted, modifier = Modifier.size(18.dp))
                 }
+            }
         }
         if (languageOpen) {
             LanguagePickerDialog(
@@ -193,8 +197,8 @@ fun SettingsScreen(state: AppState, viewModel: CalculatorViewModel, onBack: () -
             title = "Font size",
             subtitle = "Applies to the whole app",
             icon = Icons.Rounded.FormatSize,
-            iconTint = SettingsPurple,
-            iconBackground = Color(0xFFF0EAFF)
+            iconTint = TagPurpleText,
+            iconBackground = TagPurpleBg
         ) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                 listOf(.85f to "85%", 1f to "100%", 1.15f to "115%", 1.3f to "130%").forEach { (scale, label) ->
@@ -208,23 +212,24 @@ fun SettingsScreen(state: AppState, viewModel: CalculatorViewModel, onBack: () -
                 }
             }
             HorizontalDivider(color = Line)
-            Text("Preview: ₹ 1,23,456", fontSize = 16.sp, color = DeepNavy, fontWeight = FontWeight.Medium, maxLines = 1)
+            Text("Preview: ₹ 1,23,456", fontSize = 15.sp, color = DeepNavy, fontWeight = FontWeight.Medium, maxLines = 1)
         }
 
         SettingCard(
             title = "Appearance",
             subtitle = "Choose light, dark or phone setting",
             icon = Icons.Rounded.Palette,
-            iconTint = SettingsOrange,
-            iconBackground = Color(0xFFFFEBDD)
+            iconTint = TagAmberText,
+            iconBackground = TagAmberBg
         ) {
+            val isDark = IsDarkMode
             Row(
-                Modifier.fillMaxWidth().shadow(2.dp, RoundedCornerShape(11.dp), spotColor = Color(0x22000000)),
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).border(1.dp, Line, RoundedCornerShape(12.dp)),
                 horizontalArrangement = Arrangement.spacedBy(0.dp)
             ) {
-                AppearanceChoice("System", Icons.Rounded.Settings, state.theme == ThemeMode.SYSTEM, Color(0xFF5C6477), Modifier.weight(1f)) { viewModel.theme(ThemeMode.SYSTEM) }
-                AppearanceChoice("Light", Icons.Rounded.LightMode, state.theme == ThemeMode.LIGHT, Color(0xFFFFA12F), Modifier.weight(1f)) { viewModel.theme(ThemeMode.LIGHT) }
-                AppearanceChoice("Dark", Icons.Rounded.DarkMode, state.theme == ThemeMode.DARK, SettingsIndigo, Modifier.weight(1f)) { viewModel.theme(ThemeMode.DARK) }
+                AppearanceChoice("System", Icons.Rounded.Settings, state.theme == ThemeMode.SYSTEM, if (isDark) Color(0xFF94A3B8) else Color(0xFF5C6477), Modifier.weight(1f)) { viewModel.theme(ThemeMode.SYSTEM) }
+                AppearanceChoice("Light", Icons.Rounded.LightMode, state.theme == ThemeMode.LIGHT, TagAmberText, Modifier.weight(1f)) { viewModel.theme(ThemeMode.LIGHT) }
+                AppearanceChoice("Dark", Icons.Rounded.DarkMode, state.theme == ThemeMode.DARK, TagBlueText, Modifier.weight(1f)) { viewModel.theme(ThemeMode.DARK) }
             }
         }
 
@@ -235,29 +240,33 @@ fun SettingsScreen(state: AppState, viewModel: CalculatorViewModel, onBack: () -
             title = "Reminder access",
             subtitle = if (notificationAllowed && exactAllowed) "Ready" else "Permission needed for precise reminders",
             icon = Icons.Rounded.NotificationsActive,
-            iconTint = SettingsCoral,
-            iconBackground = Color(0xFFFFE5E5)
+            iconTint = TagRedText,
+            iconBackground = TagRedBg
         ) {
             HorizontalDivider(color = Line)
             PermissionRow(
                 icon = Icons.Rounded.NotificationsActive,
-                iconTint = SettingsCoral,
-                iconBackground = Color(0xFFFFE5E5),
+                iconTint = TagRedText,
+                iconBackground = TagRedBg,
                 label = "Notifications: ${if (notificationAllowed) "Allowed" else "Not allowed"}",
                 allowed = notificationAllowed
             )
             HorizontalDivider(color = Line)
             PermissionRow(
                 icon = Icons.Rounded.AccessTime,
-                iconTint = SettingsBlue,
-                iconBackground = Color(0xFFE6F0FF),
+                iconTint = TagBlueText,
+                iconBackground = TagBlueBg,
                 label = "Exact reminders: ${if (exactAllowed) "Allowed" else "Approximate time"}",
                 allowed = exactAllowed
             )
             if (!exactAllowed && Build.VERSION.SDK_INT >= 31) {
-                OutlinedButton(onClick = {
-                    context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}")))
-                }) { Text("Allow exact reminders") }
+                OutlinedButton(
+                    onClick = {
+                        context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}")))
+                    },
+                    border = BorderStroke(1.dp, Navy),
+                    shape = RoundedCornerShape(10.dp)
+                ) { Text("Allow exact reminders", color = Navy, fontWeight = FontWeight.Bold) }
             }
         }
     }
@@ -265,16 +274,28 @@ fun SettingsScreen(state: AppState, viewModel: CalculatorViewModel, onBack: () -
 
 @Composable
 private fun PremiumSettingsCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    val shape = RoundedCornerShape(15.dp)
+    val shape = RoundedCornerShape(16.dp)
+    val isDark = IsDarkMode
     Card(
-        modifier = modifier.fillMaxWidth().shadow(
-            elevation = 7.dp,
-            shape = shape,
-            spotColor = Color(0x38000000),
-            ambientColor = Color(0x16000000)
+        modifier = modifier.fillMaxWidth().then(
+            if (!isDark) {
+                Modifier.shadow(
+                    elevation = 4.dp,
+                    shape = shape,
+                    spotColor = Color(0x14000000),
+                    ambientColor = Color(0x0A000000)
+                )
+            } else {
+                Modifier.shadow(
+                    elevation = 2.dp,
+                    shape = shape,
+                    spotColor = Color(0x33000000),
+                    ambientColor = Color(0x18000000)
+                )
+            }
         ),
         shape = shape,
-        colors = CardDefaults.cardColors(containerColor = PageWhite),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, Line),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) { content() }
@@ -282,7 +303,7 @@ private fun PremiumSettingsCard(modifier: Modifier = Modifier, content: @Composa
 
 @Composable
 private fun SettingsIcon(icon: ImageVector, tint: Color, background: Color, boxSize: androidx.compose.ui.unit.Dp = 42.dp) {
-    Surface(modifier = Modifier.size(boxSize), shape = RoundedCornerShape(13.dp), color = background) {
+    Surface(modifier = Modifier.size(boxSize), shape = RoundedCornerShape(12.dp), color = background) {
         Box(contentAlignment = Alignment.Center) {
             Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(22.dp))
         }
@@ -292,15 +313,22 @@ private fun SettingsIcon(icon: ImageVector, tint: Color, background: Color, boxS
 @Composable
 private fun CompactSettingChoice(label: String, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
     val shape = RoundedCornerShape(10.dp)
+    val isDark = IsDarkMode
     Surface(
         onClick = onClick,
-        modifier = modifier.height(44.dp).shadow(2.dp, shape, spotColor = Color(0x24000000)),
+        modifier = modifier.height(44.dp),
         shape = shape,
-        color = if (selected) SettingsGreen else PageWhite,
-        border = BorderStroke(1.dp, if (selected) SettingsGreen else Line)
+        color = if (selected) Navy else SoftField,
+        border = BorderStroke(1.dp, if (selected) Navy else Line)
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Text(label, color = if (selected) Color.White else DeepNavy, fontSize = 10.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+            Text(
+                label,
+                color = if (selected) Color.White else DeepNavy,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
+            )
         }
     }
 }
@@ -314,15 +342,17 @@ private fun AppearanceChoice(
     modifier: Modifier,
     onClick: () -> Unit
 ) {
+    val isDark = IsDarkMode
     Surface(
         onClick = onClick,
         modifier = modifier.height(68.dp),
-        color = if (selected) SettingsGreen else PageWhite,
-        border = BorderStroke(1.dp, if (selected) SettingsGreen else Line)
+        color = if (selected) Navy.copy(alpha = if (isDark) 0.22f else 0.12f) else SoftField,
+        border = BorderStroke(if (selected) 1.5.dp else 0.5.dp, if (selected) Navy else Line.copy(alpha = 0.4f))
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Icon(icon, contentDescription = null, tint = if (selected) Color(0xFFFFB24C) else iconTint, modifier = Modifier.size(22.dp))
-            Text(label, color = if (selected) Color.White else DeepNavy, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Icon(icon, contentDescription = null, tint = if (selected) Navy else iconTint, modifier = Modifier.size(22.dp))
+            Spacer(Modifier.height(4.dp))
+            Text(label, color = if (selected) Navy else DeepNavy, fontSize = 12.sp, fontWeight = if (selected) FontWeight.Black else FontWeight.Medium)
         }
     }
 }
@@ -339,8 +369,8 @@ private fun PermissionRow(icon: ImageVector, iconTint: Color, iconBackground: Co
         Icon(
             Icons.Rounded.CheckCircle,
             contentDescription = null,
-            tint = if (allowed) SettingsGreen else Muted,
-            modifier = Modifier.size(23.dp)
+            tint = if (allowed) TagGreenText else Muted,
+            modifier = Modifier.size(22.dp)
         )
     }
 }
@@ -358,8 +388,8 @@ private fun LanguagePickerDialog(
         Surface(
             modifier = Modifier.fillMaxWidth(.92f).widthIn(max = 560.dp),
             shape = RoundedCornerShape(24.dp),
-            color = PageWhite,
-            tonalElevation = 3.dp,
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 0.dp,
             shadowElevation = 16.dp,
             border = BorderStroke(1.dp, Line)
         ) {
@@ -372,11 +402,11 @@ private fun LanguagePickerDialog(
                     horizontalArrangement = Arrangement.spacedBy(11.dp),
                     verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
                 ) {
-                    Surface(shape = RoundedCornerShape(13.dp), color = Navy.copy(alpha = .12f)) {
+                    Surface(shape = RoundedCornerShape(13.dp), color = TagBlueBg) {
                         Icon(
                             imageVector = Icons.Rounded.Language,
                             contentDescription = null,
-                            tint = Navy,
+                            tint = TagBlueText,
                             modifier = Modifier.padding(10.dp).size(23.dp)
                         )
                     }
@@ -457,12 +487,13 @@ private fun LanguageChoice(
     modifier: Modifier = Modifier
 ) {
     val flagResource = languageFlagResource(language.tag)
+    val isDark = IsDarkMode
     Surface(
         onClick = { onSelect(language) },
         modifier = modifier.heightIn(min = 56.dp),
         shape = RoundedCornerShape(14.dp),
-        color = if (selected) Navy.copy(alpha = .12f) else PageWhite,
-        shadowElevation = if (selected) 1.dp else 2.dp,
+        color = if (selected) Navy.copy(alpha = if (isDark) 0.22f else 0.12f) else SoftField,
+        shadowElevation = 0.dp,
         border = BorderStroke(if (selected) 1.5.dp else 1.dp, if (selected) Navy else Line)
     ) {
         Row(
@@ -473,7 +504,7 @@ private fun LanguageChoice(
             Surface(
                 modifier = Modifier.size(width = 30.dp, height = 21.dp),
                 shape = RoundedCornerShape(4.dp),
-                color = androidx.compose.ui.graphics.Color.White,
+                color = if (isDark) Color(0xFF1E293B) else Color.White,
                 border = BorderStroke(1.dp, Line)
             ) {
                 if (flagResource != null) {
@@ -501,7 +532,7 @@ private fun LanguageChoice(
                     Icon(
                         imageVector = Icons.Rounded.Check,
                         contentDescription = null,
-                        tint = androidx.compose.ui.graphics.Color.White,
+                        tint = Color.White,
                         modifier = Modifier.padding(4.dp).size(14.dp)
                     )
                 }
@@ -531,3 +562,4 @@ private fun SettingCard(
         }
     }
 }
+

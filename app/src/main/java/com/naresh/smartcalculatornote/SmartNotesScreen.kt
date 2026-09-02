@@ -12,8 +12,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -55,18 +57,22 @@ import java.util.UUID
 
 @Composable
 fun CalHubScreen(state: AppState, viewModel: CalculatorViewModel, openNoteId: String? = null) {
+    val isDark = IsDarkMode
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().padding(horizontal = 11.dp, vertical = 7.dp), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
             CalSection.entries.forEach { section ->
                 val selected = state.calSection == section
                 Button(
                     onClick = { viewModel.calSection(section) },
-                    modifier = Modifier.weight(1f).shadow(2.dp, RoundedCornerShape(11.dp), spotColor = Color(0x18000000)),
+                    modifier = Modifier.weight(1f).shadow(if (!isDark) 2.dp else 1.dp, RoundedCornerShape(11.dp), spotColor = Color(0x18000000)),
                     shape = RoundedCornerShape(11.dp),
                     border = BorderStroke(1.dp, if (selected) Navy else Line),
-                    colors = ButtonDefaults.buttonColors(containerColor = if (selected) Navy else PageWhite, contentColor = if (selected) Color.White else DeepNavy)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (selected) Navy else SoftField,
+                        contentColor = if (selected) Color.White else DeepNavy
+                    )
                 ) {
-                    Text(if (section == CalSection.CALCULATOR) "Note + Cal" else "Smart Note", fontWeight = FontWeight.Bold)
+                    Text(if (section == CalSection.CALCULATOR) "Note + Cal" else "Smart Note", color = if (selected) Color.White else DeepNavy, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -98,17 +104,23 @@ fun SmartNotesScreen(state: AppState, viewModel: CalculatorViewModel, openNoteId
     Column(Modifier.fillMaxSize().padding(horizontal = 11.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("Smart Notes", fontSize = 20.sp, fontWeight = FontWeight.Black, color = DeepNavy)
-            Button(onClick = { editingId = UUID.randomUUID().toString() }) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Text("New note")
+            Button(
+                onClick = { editingId = UUID.randomUUID().toString() },
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Navy, contentColor = Color.White)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.size(4.dp))
+                Text("New note", color = Color.White, fontWeight = FontWeight.Bold)
             }
         }
         if (state.notes.isEmpty()) {
             ReferenceCard {
                 Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.Notifications, contentDescription = null, tint = Navy)
-                    Text("No notes yet", fontWeight = FontWeight.Bold, color = DeepNavy)
-                    Text("Create a note and add an optional reminder.", color = Muted)
+                    Icon(Icons.Default.Notifications, contentDescription = null, tint = Navy, modifier = Modifier.size(32.dp))
+                    Spacer(Modifier.size(8.dp))
+                    Text("No notes yet", fontWeight = FontWeight.Bold, color = DeepNavy, fontSize = 15.sp)
+                    Text("Create a note and add an optional reminder.", color = Muted, fontSize = 13.sp)
                 }
             }
         } else {
@@ -138,6 +150,7 @@ fun SmartNotesScreen(state: AppState, viewModel: CalculatorViewModel, openNoteId
 @Composable
 private fun NoteEditor(draftId: String, note: SmartNote?, onCancel: () -> Unit, onSave: (SmartNote) -> Unit, onDelete: (() -> Unit)?) {
     val context = LocalContext.current
+    val isDark = IsDarkMode
     val id = note?.id ?: draftId
     var title by rememberSaveable(id) { mutableStateOf(note?.title.orEmpty()) }
     var details by rememberSaveable(id) { mutableStateOf(note?.details.orEmpty()) }
@@ -161,11 +174,16 @@ private fun NoteEditor(draftId: String, note: SmartNote?, onCancel: () -> Unit, 
             reminderAt = updated.timeInMillis
         }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), false).show()
     }
-    LazyColumn(Modifier.fillMaxSize().padding(horizontal = 11.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+    LazyColumn(Modifier.fillMaxSize().padding(horizontal = 11.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(if (note == null) "New note" else "Edit note", fontSize = 20.sp, fontWeight = FontWeight.Black, color = DeepNavy)
-                OutlinedButton(onClick = onCancel) { Text("Cancel") }
+                OutlinedButton(
+                    onClick = onCancel,
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(1.dp, Line),
+                    colors = ButtonDefaults.outlinedButtonColors(containerColor = SoftField, contentColor = DeepNavy)
+                ) { Text("Cancel") }
             }
         }
         item {
@@ -173,10 +191,17 @@ private fun NoteEditor(draftId: String, note: SmartNote?, onCancel: () -> Unit, 
                 value = title,
                 onValueChange = { title = it.take(120) },
                 label = { Text("Title") },
-                leadingIcon = { Icon(Icons.AutoMirrored.Filled.NoteAdd, contentDescription = null) },
-                modifier = Modifier.fillMaxWidth().shadow(2.5.dp, androidx.compose.foundation.shape.RoundedCornerShape(12.dp), spotColor = Color(0x22000000)),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(focusedContainerColor = PageWhite, unfocusedContainerColor = PageWhite),
+                leadingIcon = { Icon(Icons.AutoMirrored.Filled.NoteAdd, contentDescription = null, tint = Navy) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = SoftField,
+                    unfocusedContainerColor = SoftField,
+                    focusedBorderColor = Navy,
+                    unfocusedBorderColor = Line,
+                    focusedTextColor = DeepNavy,
+                    unfocusedTextColor = DeepNavy
+                ),
                 singleLine = true
             )
         }
@@ -185,9 +210,16 @@ private fun NoteEditor(draftId: String, note: SmartNote?, onCancel: () -> Unit, 
                 value = details,
                 onValueChange = { details = it.take(4000) },
                 label = { Text("Details") },
-                modifier = Modifier.fillMaxWidth().shadow(2.5.dp, androidx.compose.foundation.shape.RoundedCornerShape(12.dp), spotColor = Color(0x22000000)),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(focusedContainerColor = PageWhite, unfocusedContainerColor = PageWhite),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = SoftField,
+                    unfocusedContainerColor = SoftField,
+                    focusedBorderColor = Navy,
+                    unfocusedBorderColor = Line,
+                    focusedTextColor = DeepNavy,
+                    unfocusedTextColor = DeepNavy
+                ),
                 minLines = 5
             )
         }
@@ -203,18 +235,33 @@ private fun NoteEditor(draftId: String, note: SmartNote?, onCancel: () -> Unit, 
                     }
                     if (reminderEnabled) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
-                            OutlinedButton(onClick = ::chooseDate, modifier = Modifier.weight(1f)) { Text(DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(reminderAt))) }
-                            OutlinedButton(onClick = ::chooseTime, modifier = Modifier.weight(1f)) { Text(DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(reminderAt))) }
+                            OutlinedButton(
+                                onClick = ::chooseDate,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp),
+                                border = BorderStroke(1.dp, Line),
+                                colors = ButtonDefaults.outlinedButtonColors(containerColor = SoftField, contentColor = DeepNavy)
+                            ) { Text(DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(reminderAt)), fontSize = 12.sp) }
+                            OutlinedButton(
+                                onClick = ::chooseTime,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp),
+                                border = BorderStroke(1.dp, Line),
+                                colors = ButtonDefaults.outlinedButtonColors(containerColor = SoftField, contentColor = DeepNavy)
+                            ) { Text(DateFormat.getTimeInstance(DateFormat.SHORT).format(Date(reminderAt)), fontSize = 12.sp) }
                         }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             ReminderRepeat.entries.forEach { option ->
                                 Button(
                                     onClick = { repeat = option },
-                                    modifier = Modifier.weight(1f).shadow(2.dp, RoundedCornerShape(10.dp), spotColor = Color(0x18000000)),
+                                    modifier = Modifier.weight(1f),
                                     shape = RoundedCornerShape(10.dp),
                                     border = BorderStroke(1.dp, if (repeat == option) Navy else Line),
-                                    colors = ButtonDefaults.buttonColors(containerColor = if (repeat == option) Navy else PageWhite, contentColor = if (repeat == option) Color.White else DeepNavy)
-                                ) { Text(repeatLabel(option), fontSize = 11.sp) }
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (repeat == option) Navy else SoftField,
+                                        contentColor = if (repeat == option) Color.White else DeepNavy
+                                    )
+                                ) { Text(repeatLabel(option), color = if (repeat == option) Color.White else DeepNavy, fontSize = 11.sp) }
                             }
                         }
                     }
@@ -231,16 +278,28 @@ private fun NoteEditor(draftId: String, note: SmartNote?, onCancel: () -> Unit, 
         }
         if (error.isNotBlank()) item { Text(error, color = AppRed) }
         item {
-            Button(onClick = {
-                if (title.isBlank() && details.isBlank()) { error = "Enter a title or note details."; return@Button }
-                if (reminderEnabled && reminderAt <= System.currentTimeMillis()) { error = "Choose a future reminder time."; return@Button }
-                onSave(SmartNote(id, title.trim(), details.trim(), note?.createdAt ?: System.currentTimeMillis(), System.currentTimeMillis(), completed, if (reminderEnabled && !completed) reminderAt else null, if (reminderEnabled) repeat else ReminderRepeat.NONE))
-            }, modifier = Modifier.fillMaxWidth()) { Text("Save note", fontWeight = FontWeight.Bold) }
+            Button(
+                onClick = {
+                    if (title.isBlank() && details.isBlank()) { error = "Enter a title or note details."; return@Button }
+                    if (reminderEnabled && reminderAt <= System.currentTimeMillis()) { error = "Choose a future reminder time."; return@Button }
+                    onSave(SmartNote(id, title.trim(), details.trim(), note?.createdAt ?: System.currentTimeMillis(), System.currentTimeMillis(), completed, if (reminderEnabled && !completed) reminderAt else null, if (reminderEnabled) repeat else ReminderRepeat.NONE))
+                },
+                modifier = Modifier.fillMaxWidth().height(46.dp),
+                shape = RoundedCornerShape(11.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Navy, contentColor = Color.White)
+            ) { Text("Save note", color = Color.White, fontWeight = FontWeight.Bold) }
         }
         if (onDelete != null) item {
-            OutlinedButton(onClick = onDelete, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Default.Delete, contentDescription = null, tint = AppRed)
-                Text("Delete note", color = AppRed)
+            OutlinedButton(
+                onClick = onDelete,
+                modifier = Modifier.fillMaxWidth().height(46.dp),
+                shape = RoundedCornerShape(11.dp),
+                border = BorderStroke(1.dp, AppRed.copy(alpha = 0.5f)),
+                colors = ButtonDefaults.outlinedButtonColors(containerColor = TagRedBg, contentColor = AppRed)
+            ) {
+                Icon(Icons.Default.Delete, contentDescription = null, tint = AppRed, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.size(4.dp))
+                Text("Delete note", color = AppRed, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -251,3 +310,4 @@ private fun repeatLabel(value: ReminderRepeat) = when (value) {
     ReminderRepeat.DAILY -> "Daily"
     ReminderRepeat.WEEKLY -> "Weekly"
 }
+
